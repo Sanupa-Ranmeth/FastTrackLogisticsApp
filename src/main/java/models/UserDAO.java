@@ -41,7 +41,7 @@ public class UserDAO {
                     rs.getString("Role")
                 );
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             System.out.println("Login Failed: " + e.getMessage());
         }
         return null;
