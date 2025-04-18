@@ -53,6 +53,14 @@ public class LoginView extends JFrame {
                     new CustomerView(user.getUsername()).setVisible(true);
                     dispose(); //Gets rid of LoginView
                 }
+                else if (user != null && user.getRole().equals("admin")) {
+                    new AdminView(user.getUsername()).setVisible(true);
+                    dispose();
+                }
+                else if (user != null && user.getRole().equals("driver")) {
+                    new DriverView(user.getUsername()).setVisible(true);
+                    dispose();
+                }
                 else {
                     JOptionPane.showMessageDialog(LoginBackPanel, "Login Failed", "Failure", 1);
                 }
