@@ -5,7 +5,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DatabaseConnection {
-    private static final String URL = "jdbc:sqlserver://DESKTOP-N4BU3B9\\SQLEXPRESS;databaseName=FastTrackLogisticsDB;integratedSecurity=true;trustServerCertificate=true;";
+    private static final String URL = "jdbc:sqlserver://sql.vihaga.dev:1433;databaseName=FastTrackLogisticsDB;user=SA;password=#28@Vihanga#Jay.;encrypt=true;trustServerCertificate=true;";
 
     public static Connection getConnection() {
         try {

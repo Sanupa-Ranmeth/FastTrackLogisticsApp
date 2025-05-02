@@ -20,6 +20,8 @@ public class LoginView extends JFrame {
     UserController userController;
 
     public LoginView() {
+        setContentPane(LoginBackPanel); //Can't do this in the main method cause loginBackPanel is public
+
         userController = new UserController();
 
         btnRegister.addActionListener(new ActionListener() {
