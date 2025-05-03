@@ -105,6 +105,7 @@ public class DeliveryPersonnelDAO {
         }
     }
 
+    /* Redundant for now
     public List<DeliveryPersonnel> getAllDeliveryPersonnel() {
         List<DeliveryPersonnel> drivers = new ArrayList<>();
         String sql = "SELECT d.DriverID, u.Username, u.Password, u.Email, d.DriverName, d.Schedule, d.RouteID FROM Driver d JOIN [User] u ON d.DriverID = u.UserID";
@@ -126,6 +127,31 @@ public class DeliveryPersonnelDAO {
             System.out.println("Get All Delivery Personnel Failed: " + e.getMessage());
         }
         return drivers;
+    }
+     */
+
+    public Object[][] getAllDeliveryPersonnel() {
+        List<Object[]> driverData = new ArrayList<>();
+        String sql = "SELECT d.DriverID, d.DriverName, d.Schedule, d.RouteID, d.AverageRating FROM DriverInfoView d";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                double avgRating = rs.getDouble("AverageRating");
+                Object rating = rs.wasNull() ? "N/A" : avgRating;
+                driverData.add(new Object[]{
+                        rs.getInt("DriverID"),
+                        rs.getString("DriverName"),
+                        rs.getString("Schedule"),
+                        rs.getInt("RouteID"),
+                        rating
+                });
+            }
+        } catch (SQLException e) {
+            System.out.println("Failed to Get Drivers: " + e.getMessage());
+        }
+        return driverData.toArray(new Object[0][0]);
     }
 
     //Method to get userID from username
