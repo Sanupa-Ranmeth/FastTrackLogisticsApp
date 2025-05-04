@@ -34,7 +34,7 @@ public class DeliveryPersonnelController {
         if (driverID <= 0) {
             return false;
         }
-        return driverDAO.deleteDeliveryPersonnel(driverID) && driverDAO.deleteDeliveryPersonnel(driverID);
+        return driverDAO.deleteDeliveryPersonnel(driverID) && driverDAO.deleteUser(driverID);
     }
 
     public Object[][] getAllDrivers() {

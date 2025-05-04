@@ -94,7 +94,7 @@ public class DeliveryPersonnelDAO {
 
     //The driver needs to be deleted from the User table as well
     public boolean deleteUser (int userID) {
-        String sql = "DELETE FROM [User] WHERE UserID = ?";
+        String sql = "DELETE FROM `User` WHERE UserID = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, userID);
@@ -108,7 +108,7 @@ public class DeliveryPersonnelDAO {
     /* Redundant for now
     public List<DeliveryPersonnel> getAllDeliveryPersonnel() {
         List<DeliveryPersonnel> drivers = new ArrayList<>();
-        String sql = "SELECT d.DriverID, u.Username, u.Password, u.Email, d.DriverName, d.Schedule, d.RouteID FROM Driver d JOIN [User] u ON d.DriverID = u.UserID";
+        String sql = "SELECT d.DriverID, u.Username, u.Password, u.Email, d.DriverName, d.Schedule, d.RouteID FROM Driver d JOIN `User` u ON d.DriverID = u.UserID";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
@@ -156,7 +156,7 @@ public class DeliveryPersonnelDAO {
 
     //Method to get userID from username
     private int getUserIDbyUsername(String username) {
-        String sql = "SELECT UserID FROM [User] WHERE Username = ?";
+        String sql = "SELECT UserID FROM `User` WHERE Username = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {

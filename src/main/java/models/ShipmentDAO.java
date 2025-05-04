@@ -88,7 +88,7 @@ public class ShipmentDAO {
     }
 
     public int getUserIDbyUsername(String username) {
-        String sql = "SELECT UserID FROM [User] WHERE Username = ?";
+        String sql = "SELECT UserID FROM `User` WHERE Username = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)) {
