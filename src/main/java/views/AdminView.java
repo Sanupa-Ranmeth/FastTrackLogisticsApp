@@ -89,6 +89,8 @@ public class AdminView extends JFrame {
         txtDriverID.setEditable(false);
         txtRating.setEditable(false); //These fields will not be editable
 
+        refreshDriverTable();
+
         //Button actions
         addDriverButton.addActionListener(new ActionListener() {
             @Override

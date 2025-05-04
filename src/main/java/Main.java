@@ -1,5 +1,3 @@
-package mainApp;
-
 import views.LoginView;
 
 import javax.swing.*;
