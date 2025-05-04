@@ -37,6 +37,11 @@ public class CustomerView extends JFrame {
     }
 
     public CustomerView(String username) {
+        setContentPane(customerBackPanel);
+        setTitle("FastTrack Logistics - Customer Dashboard");
+        setSize(800, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
         this.username = username;
         this.shipmentController = new ShipmentController();
 
