@@ -10,13 +10,14 @@ import java.sql.SQLException;
 public class UserDAO {
 
     public boolean registerUser(User user) {
-        String SQL = "INSERT INTO `User` (Username, Password, Email, Role) VALUES (?, ?, ?, 'customer')";
+        String SQL = "INSERT INTO `User` (Username, Password, Email, Role) VALUES (?, ?, ?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL)) {
             stmt.setString(1, user.getUsername());
             stmt.setString(2, user.getPassword());
             stmt.setString(3, user.getEmail());
+            stmt.setString(4, user.getRole());
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             System.out.println("Registration Failed: " + e.getMessage());
