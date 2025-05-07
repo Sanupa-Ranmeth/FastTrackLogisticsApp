@@ -8,6 +8,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 
 public class AdminView extends JFrame {
     private JPanel AdminBackPanel;
@@ -22,7 +23,7 @@ public class AdminView extends JFrame {
     private JLabel lblDestination;
     private JLabel lblContent;
     private JLabel lblCustomer;
-    private JComboBox comboBox1;
+    private JComboBox<String> lbldriverdetails;
     private JButton approveButton;
     private JTable tableDrivers;
     private JTable tableDeliveryHistory;
@@ -90,6 +91,9 @@ public class AdminView extends JFrame {
         txtRating.setEditable(false); //These fields will not be editable
 
         refreshDriverTable();
+
+        // Populate the driver dropdown with names
+        populateDriverDropdown();
 
         //Button actions
         addDriverButton.addActionListener(new ActionListener() {
@@ -162,8 +166,7 @@ public class AdminView extends JFrame {
 
         clearFormButton.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                clearDriverForm();
+            public void actionPerformed(ActionEvent e) { clearDriverForm();
             }
         });
 
@@ -182,5 +185,17 @@ public class AdminView extends JFrame {
                 }
             }
         });
+    }
+
+
+    //Populate DriverDropDown
+    public void  populateDriverDropdown() {
+        //Fetch Driver Names
+        List<String> driverNames = driverController.getAllDriverNames();
+
+        //Addding driver names to the drop down
+        for(String name: driverNames) {
+            lbldriverdetails.addItem(name); // add each driver name as an item
+        }
     }
 }

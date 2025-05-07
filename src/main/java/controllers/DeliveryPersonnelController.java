@@ -3,6 +3,9 @@ package controllers;
 import models.DeliveryPersonnel;
 import models.DeliveryPersonnelDAO;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DeliveryPersonnelController {
     private DeliveryPersonnelDAO driverDAO;
 
@@ -39,6 +42,10 @@ public class DeliveryPersonnelController {
 
     public Object[][] getAllDrivers() {
         return driverDAO.getAllDeliveryPersonnel();
+    }
+
+    public List<String> getAllDriverNames() {
+        return driverDAO.getALLDriverNames();
     }
 
 }

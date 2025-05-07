@@ -93,7 +93,7 @@ public class DeliveryPersonnelDAO {
     }
 
     //The driver needs to be deleted from the User table as well
-    public boolean deleteUser (int userID) {
+    public boolean deleteUser(int userID) {
         String sql = "DELETE FROM `User` WHERE UserID = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -170,5 +170,30 @@ public class DeliveryPersonnelDAO {
             System.out.println("Failed to Get UserID: " + e.getMessage());
         }
         return -1;
+    }
+
+    //fetching Driver-names from database
+    public List<String> getALLDriverNames() {
+        List<String> driverNames = new ArrayList<>();  // Create an empty list to store driver names
+
+        String sql = "SELECT DriverName FROM Driver";  // SQL query to select DriverName from Driver table
+
+        try (
+                // Establish connection, prepare statement, and execute the query
+                Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql);  // Prepare the SQL statement
+                ResultSet resultSet = stmt.executeQuery();  // Execute the query and store results
+        ) {
+            // Iterate over the result set to fetch all driver names
+            while (resultSet.next()) {
+                // Get the driver's name from the result set
+                String name = resultSet.getString("DriverName");  // "DriverName" is the column from the DB
+                driverNames.add(name);  // Add the driver's name to the list
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();  // Print any SQL exceptions if something goes wrong
+        }
+
+        return driverNames;  // Return the list of driver names
     }
 }
