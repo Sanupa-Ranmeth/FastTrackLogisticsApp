@@ -1,13 +1,18 @@
 package controllers;
 
-import models.Shipment;
-import models.ShipmentDAO;
+import models.*;
+
+import java.util.List;
 
 public class ShipmentController {
     private ShipmentDAO shipmentDAO;
+    private TimeSlotDAO timeSlotDAO;
+    private CityDAO cityDAO;
 
     public ShipmentController() {
         this.shipmentDAO = new ShipmentDAO();
+        this.timeSlotDAO = new TimeSlotDAO();
+        this.cityDAO = new CityDAO();
     }
 
     public boolean addShipment(Shipment shipment, String username) {
@@ -32,5 +37,14 @@ public class ShipmentController {
             return new Object[0][0];
         }
         return shipmentDAO.getShipmentsByCustomer(senderID);
+    }
+
+    //Fetching time slots and cities for the dropdowns
+    public List<TimeSlot> getAllTimeSlots() {
+        return timeSlotDAO.getAllTimeSlots();
+    }
+
+    public List<City> getAllCities() {
+        return cityDAO.getAllCities();
     }
 }

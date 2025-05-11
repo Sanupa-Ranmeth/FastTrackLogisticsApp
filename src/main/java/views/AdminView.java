@@ -1,6 +1,8 @@
 package views;
 
 import controllers.DeliveryPersonnelController;
+import controllers.TimeSlotController;
+import models.TimeSlot;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -8,6 +10,8 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Time;
+import java.util.List;
 
 public class AdminView extends JFrame {
     private JPanel AdminBackPanel;
@@ -19,9 +23,6 @@ public class AdminView extends JFrame {
     private JButton addShipmentButton;
     private JButton removeShipmentButton;
     private JButton updateShipmentButton;
-    private JLabel lblDestination;
-    private JLabel lblContent;
-    private JLabel lblCustomer;
     private JComboBox comboBox1;
     private JButton approveButton;
     private JTable tableDrivers;
@@ -39,10 +40,34 @@ public class AdminView extends JFrame {
     private JTextField txtRouteID;
     private JButton clearFormButton;
     private JTextField txtRating;
+    private JTable tableTimeSlots;
+    private JButton addSlotButton;
+    private JButton removeSlotButton;
+    private JPanel containerTimeSlotDetails;
+    private JTextField txtStartTime;
+    private JTextField txtEndTime;
+    private JTextField txtContent;
+    private JTextField txtCustomer;
+    private JTextField txtDeliveryDate;
+    private JCheckBox checkboxUrgent;
+    private JTextArea textArea1;
+    private JComboBox dropdownDestination;
+    private JComboBox dropdownTimeSlot;
 
     private DeliveryPersonnelController driverController;
+    private TimeSlotController timeSlotController = new TimeSlotController();
 
-    //Driver Table Functions
+    //Shipment Table Methods
+    private void loadTimeSlots() {
+        DefaultTableModel timeSlotModel = (DefaultTableModel) tableTimeSlots.getModel();
+        timeSlotModel.setRowCount(0);
+        List<TimeSlot> timeSlots = timeSlotController.getAllTimeSlots();
+        for (TimeSlot ts : timeSlots) {
+            timeSlotModel.addRow(new Object[] { ts.getTimeSlotID(), ts.getStartTime(), ts.getEndTime() });
+        }
+    }
+
+    //Driver Table Methods
     private void refreshDriverTable() {
         DefaultTableModel model = (DefaultTableModel) tableDrivers.getModel();
         model.setDataVector(driverController.getAllDrivers(), new String[] { "ID", "Name", "Schedule", "Route", "Average Rating" });
@@ -55,11 +80,16 @@ public class AdminView extends JFrame {
         txtRouteID.setText("");
     }
 
+    //------------------ADMIN VIEW--------------------------------------------------------------------------------------------------------------------
+
     public AdminView(String username) {
         setContentPane(AdminBackPanel);
         setTitle("FastTrack Logistics - Admin Dashboard");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        //Initializing table data
+        loadTimeSlots();
 
         //Shipment table model
         String[] ShipmentColumns = {"ID", "Customer", "Destination", "Content", "Driver", "Status"};
@@ -68,6 +98,10 @@ public class AdminView extends JFrame {
         DefaultTableModel modelShipments = new DefaultTableModel(ShipmentData, ShipmentColumns);
         tableShipments.setModel(modelShipments);
 
+        //TimeSlot table model
+        String[] TimeSlotColumns = {"TimeSlotID", "StartTime", "EndTime"};
+        DefaultTableModel modelTimeSlots = new DefaultTableModel(TimeSlotColumns, 0);
+        tableTimeSlots.setModel(modelTimeSlots);
 
         //Driver table model
         String[] DriverColumns = {"ID", "Name", "Schedule", "Route", "Average Rating"};
@@ -82,6 +116,47 @@ public class AdminView extends JFrame {
 
         DefaultTableModel modelDeliveryHistory = new DefaultTableModel(DeliveryHistoryData, DeliveryHistoryColumns);
         tableDeliveryHistory.setModel(modelDeliveryHistory);
+
+        //SHIPMENT SECTION----------------------------------------------------------------------------------------------
+
+        addSlotButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    Time startTime = Time.valueOf(txtStartTime.getText() + ":00");
+                    Time endTime = Time.valueOf(txtEndTime.getText() + ":00");
+
+                    if (timeSlotController.addTimeSlot(startTime, endTime)) {
+                        JOptionPane.showMessageDialog(AdminBackPanel, "Time slot added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        loadTimeSlots();
+                        txtStartTime.setText("");
+                        txtEndTime.setText("");
+                    } else {
+                        JOptionPane.showMessageDialog(AdminBackPanel, "Time slot could not be added!", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                } catch (IllegalArgumentException ex) {
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Invalid time format. Use HH:MM", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        removeSlotButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int selectedRow = tableTimeSlots.getSelectedRow();
+                if (selectedRow >= 0) {
+                    int timeSlotID = (int) tableTimeSlots.getValueAt(selectedRow, 0);
+                    if (timeSlotController.removeTimeSlot(timeSlotID)) {
+                        JOptionPane.showMessageDialog(AdminBackPanel, "Time slot removed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        loadTimeSlots();
+                    } else {
+                        JOptionPane.showMessageDialog(AdminBackPanel, "Failed to remove time slot!", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Select a time slot first!", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
 
         //DRIVER SECTION -----------------------------------------------------------------------------------------------
         driverController = new DeliveryPersonnelController();

@@ -1,31 +1,39 @@
 package models;
 
+import java.util.Date;
+
 public class Shipment {
     private int shipmentID;
     private int senderID;
     private String receiverName;
-    private String destination;
+    private Integer destination;
+    private String destinationAddress;
     private String content;
     private boolean isUrgent;
-    private String preferredTimeSlot;
+    private Date deliveryDate;
+    private Integer preferredTimeSlot; //Integer - can be null unlike int
 
     //Full Constructor
-    public Shipment(int shipmentID, int senderID, String receiverName, String destination, String content, boolean isUrgent, String preferredTimeSlot) {
+    public Shipment(int shipmentID, int senderID, String receiverName, Integer destination, String destinationAddress, String content, boolean isUrgent, Date deliveryDate, Integer preferredTimeSlot) {
         this.shipmentID = shipmentID;
         this.senderID = senderID;
         this.receiverName = receiverName;
         this.destination = destination;
+        this.destinationAddress = destinationAddress;
         this.content = content;
         this.isUrgent = isUrgent;
+        this.deliveryDate = deliveryDate;
         this.preferredTimeSlot = preferredTimeSlot;
     }
 
     //Partial Constructor for Adding Shipments (ShipmentID is auto-incremented)
-    public Shipment(String receiverName, String destination, String content, boolean isUrgent, String preferredTimeSlot) {
+    public Shipment(String receiverName, Integer destination, String destinationAddress, String content, boolean isUrgent, Date deliveryDate, Integer preferredTimeSlot) {
         this.receiverName = receiverName;
         this.destination = destination;
+        this.destinationAddress = destinationAddress;
         this.content = content;
         this.isUrgent = isUrgent;
+        this.deliveryDate = deliveryDate;
         this.preferredTimeSlot = preferredTimeSlot;
     }
 
@@ -42,8 +50,12 @@ public class Shipment {
         return receiverName;
     }
 
-    public String getDestination() {
+    public Integer getDestination() {
         return destination;
+    }
+
+    public String getDestinationAddress() {
+        return destinationAddress;
     }
 
     public String getContent() {
@@ -54,7 +66,24 @@ public class Shipment {
         return isUrgent;
     }
 
-    public String getPreferredTimeSlot() {
+    public Date getDeliveryDate() {
+        return deliveryDate;
+    }
+
+    public Integer getPreferredTimeSlot() {
         return preferredTimeSlot;
+    }
+
+    //Setters (if needed for updates)
+    public void setDestination(Integer destination) {
+        this.destination = destination;
+    }
+
+    public void setDeliveryDate(Date deliveryDate) {
+        this.deliveryDate = deliveryDate;
+    }
+
+    public void setPreferredTimeSlot(Integer preferredTimeSlot) {
+        this.preferredTimeSlot = preferredTimeSlot;
     }
 }
