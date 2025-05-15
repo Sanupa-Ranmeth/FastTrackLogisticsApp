@@ -39,12 +39,21 @@ public class ShipmentController {
         return shipmentDAO.getShipmentsByCustomer(senderID);
     }
 
-    //Fetching time slots and cities for the dropdowns
-    public List<TimeSlot> getAllTimeSlots() {
-        return timeSlotDAO.getAllTimeSlots();
+    //Admin-only functions
+    public Object[][] getAllAdminShipments() {
+        return shipmentDAO.getAllAdminShipments();
     }
 
-    public List<City> getAllCities() {
-        return cityDAO.getAllCities();
+    public Object[][] getAdminShipmentsByStatus(String status) {
+        return shipmentDAO.getAdminShipmentsByStatus(status);
+    }
+
+    //Methods to update shipment status - approve and disapprove buttons
+    public boolean approveShipment(int shipmentID) {
+        return shipmentDAO.updateShipmentStatus(shipmentID, "Approved");
+    }
+
+    public boolean disapproveShipment(int shipmentID) {
+        return shipmentDAO.updateShipmentStatus(shipmentID, "Disapproved");
     }
 }

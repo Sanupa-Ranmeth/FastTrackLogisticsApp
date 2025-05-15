@@ -12,9 +12,10 @@ public class Shipment {
     private boolean isUrgent;
     private Date deliveryDate;
     private Integer preferredTimeSlot; //Integer - can be null unlike int
+    private String status;
 
     //Full Constructor
-    public Shipment(int shipmentID, int senderID, String receiverName, Integer destination, String destinationAddress, String content, boolean isUrgent, Date deliveryDate, Integer preferredTimeSlot) {
+    public Shipment(int shipmentID, int senderID, String receiverName, Integer destination, String destinationAddress, String content, boolean isUrgent, Date deliveryDate, Integer preferredTimeSlot, String status) {
         this.shipmentID = shipmentID;
         this.senderID = senderID;
         this.receiverName = receiverName;
@@ -24,10 +25,11 @@ public class Shipment {
         this.isUrgent = isUrgent;
         this.deliveryDate = deliveryDate;
         this.preferredTimeSlot = preferredTimeSlot;
+        this.status = status;
     }
 
     //Partial Constructor for Adding Shipments (ShipmentID is auto-incremented)
-    public Shipment(String receiverName, Integer destination, String destinationAddress, String content, boolean isUrgent, Date deliveryDate, Integer preferredTimeSlot) {
+    public Shipment(String receiverName, Integer destination, String destinationAddress, String content, boolean isUrgent, Date deliveryDate, Integer preferredTimeSlot, String status) {
         this.receiverName = receiverName;
         this.destination = destination;
         this.destinationAddress = destinationAddress;
@@ -35,6 +37,7 @@ public class Shipment {
         this.isUrgent = isUrgent;
         this.deliveryDate = deliveryDate;
         this.preferredTimeSlot = preferredTimeSlot;
+        this.status = status;
     }
 
     //Getters
@@ -74,6 +77,10 @@ public class Shipment {
         return preferredTimeSlot;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
     //Setters (if needed for updates)
     public void setDestination(Integer destination) {
         this.destination = destination;
@@ -85,5 +92,9 @@ public class Shipment {
 
     public void setPreferredTimeSlot(Integer preferredTimeSlot) {
         this.preferredTimeSlot = preferredTimeSlot;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

@@ -1,5 +1,6 @@
 package views;
 
+import controllers.CityController;
 import controllers.ShipmentController;
 import controllers.TimeSlotController;
 import models.City;
@@ -33,6 +34,8 @@ public class CustomerView extends JFrame {
     private JTextField txtDeliveryDate;
 
     private ShipmentController shipmentController;
+    private CityController cityController = new CityController();
+    private TimeSlotController timeSlotController = new TimeSlotController();
     private ShipmentDAO shipmentDAO;
     private String username;
 
@@ -53,7 +56,7 @@ public class CustomerView extends JFrame {
 
     private void populateDestinationDropdown() {
         dropdownDestination.removeAllItems();
-        List<City> cities = shipmentController.getAllCities();
+        List<City> cities = cityController.getAllCities();
         for (City city : cities) {
             dropdownDestination.addItem(city.getCityName());
         }
@@ -61,7 +64,7 @@ public class CustomerView extends JFrame {
 
     private void populateTimeSlotDropdown() {
         dropdownTimeSlot.removeAllItems();
-        List<TimeSlot> timeSlots = shipmentController.getAllTimeSlots();
+        List<TimeSlot> timeSlots = timeSlotController.getAllTimeSlots();
         if (timeSlots.isEmpty()) {
             dropdownTimeSlot.addItem(null);
         } else {
@@ -90,7 +93,7 @@ public class CustomerView extends JFrame {
         if (selectedCityName == null) {
             return null;
         }
-        List<City> cities = shipmentController.getAllCities();
+        List<City> cities = cityController.getAllCities();
         for (City city : cities) {
             if (city.getCityName().equals(selectedCityName)) {
                 return city.getCityID();
@@ -162,8 +165,8 @@ public class CustomerView extends JFrame {
                 Integer timeslotID = getSelectedTimeSlotID();
                 Integer cityID = getSelectedCityID();
 
-                System.out.println("Time Slot Id: " + timeslotID);
-                Shipment shipment = new Shipment(receiverName, cityID, destinationAddress, contents, isUrgent, deliveryDate, timeslotID);
+                //System.out.println("Time Slot Id: " + timeslotID);
+                Shipment shipment = new Shipment(receiverName, cityID, destinationAddress, contents, isUrgent, deliveryDate, timeslotID, "Pending");
 
                 if (shipmentController.addShipment(shipment, username)) {
                     JOptionPane.showMessageDialog(customerBackPanel, "Shipment added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -190,7 +193,7 @@ public class CustomerView extends JFrame {
 
                 //Find timeslot object that matches the display string
                 String timeSlotString = model.getValueAt(selectedRow, 8).toString();
-                List<TimeSlot> timeSlots = shipmentController.getAllTimeSlots();
+                List<TimeSlot> timeSlots = timeSlotController.getAllTimeSlots();
                 for (TimeSlot timeSlot : timeSlots) {
                     if (timeSlot.toString().equals(timeSlotString)) {
                         dropdownTimeSlot.setSelectedItem(timeSlot);
@@ -240,7 +243,7 @@ public class CustomerView extends JFrame {
                         return;
                     }
 
-                    Shipment shipment = new Shipment(shipmentID, senderID, receiverName, cityID, destinationAddress, contents, isUrgent, deliveryDate, timeSlotID);
+                    Shipment shipment = new Shipment(shipmentID, senderID, receiverName, cityID, destinationAddress, contents, isUrgent, deliveryDate, timeSlotID, "Pending");
 
                     if (shipmentController.updateShipment(shipment)) {
                         JOptionPane.showMessageDialog(customerBackPanel, "Shipment updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
