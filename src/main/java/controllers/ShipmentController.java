@@ -2,8 +2,6 @@ package controllers;
 
 import models.*;
 
-import java.util.List;
-
 public class ShipmentController {
     private ShipmentDAO shipmentDAO;
     private TimeSlotDAO timeSlotDAO;
@@ -60,4 +58,11 @@ public class ShipmentController {
     public boolean disapproveShipment(int shipmentID) {
         return shipmentDAO.updateShipmentStatus(shipmentID, "Disapproved");
     }
+
+    // get shipment status/
+    public Object[][] getShipmentStatus(int shipmentID) {
+        return shipmentDAO.getShipmentStatus(shipmentID);
+    }
+
+
 }

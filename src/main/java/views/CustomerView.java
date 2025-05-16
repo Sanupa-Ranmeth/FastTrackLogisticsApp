@@ -13,6 +13,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.Date;
+import java.util.Arrays;
 import java.util.List;
 
 public class CustomerView extends JFrame {
@@ -282,7 +283,21 @@ public class CustomerView extends JFrame {
         btnTrackStatus.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+
                 //CODE GOES HERE
+
+                {
+                    int selectedRow = tableCustomerShipments.getSelectedRow();
+                    if (selectedRow >= 0) {
+
+                        int shipmentID = (int) ((DefaultTableModel) tableCustomerShipments.getModel()).getValueAt(selectedRow, 0);
+                        shipmentDAO.getShipmentStatus(shipmentID);
+                        JOptionPane.showMessageDialog(customerBackPanel, "Shipment Status: " + Arrays.deepToString(shipmentDAO.getShipmentStatus(shipmentID)), "Shipment Status", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                    else {
+                        JOptionPane.showMessageDialog(customerBackPanel, "Select a shipment to Track Status", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
             }
         });
     }
