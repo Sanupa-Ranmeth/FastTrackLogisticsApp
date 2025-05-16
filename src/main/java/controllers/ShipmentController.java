@@ -60,8 +60,8 @@ public class ShipmentController {
     }
 
     // get shipment status/
-    public Object[][] getShipmentStatus(int shipmentID) {
-        return shipmentDAO.getShipmentStatus(shipmentID);
+    public Object[][] getShipmentTracking(int shipmentID) {
+        return shipmentDAO.getShipmentTracking(shipmentID);
     }
 
 

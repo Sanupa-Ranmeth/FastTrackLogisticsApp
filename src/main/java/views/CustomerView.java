@@ -13,8 +13,9 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.Date;
-import java.util.Arrays;
 import java.util.List;
+
+import static jdk.internal.org.jline.utils.AttributedStringBuilder.append;
 
 public class CustomerView extends JFrame {
 
@@ -290,9 +291,13 @@ public class CustomerView extends JFrame {
                     int selectedRow = tableCustomerShipments.getSelectedRow();
                     if (selectedRow >= 0) {
 
-                        int shipmentID = (int) ((DefaultTableModel) tableCustomerShipments.getModel()).getValueAt(selectedRow, 0);
-                        shipmentDAO.getShipmentStatus(shipmentID);
-                        JOptionPane.showMessageDialog(customerBackPanel, "Shipment Status: " + Arrays.deepToString(shipmentDAO.getShipmentStatus(shipmentID)), "Shipment Status", JOptionPane.INFORMATION_MESSAGE);
+                     int shipmentID = (int) ((DefaultTableModel) tableCustomerShipments.getModel()).getValueAt(selectedRow, 0);
+                        String[] labels = {"Status: ", "Current Location: ", "Delivery Estimation: ", "Delay: "};
+                        StringBuilder displayText = new StringBuilder();
+                        for (int i = 0; i < labels.length; i++) {
+                            displayText.append(labels[i]).append(ShipmentDAO.getShipmentTracking(shipmentID)[0][i]).append("\n");
+                        }
+                        JOptionPane.showMessageDialog(null,displayText.toString(), "Track Status", JOptionPane.INFORMATION_MESSAGE);
                     }
                     else {
                         JOptionPane.showMessageDialog(customerBackPanel, "Select a shipment to Track Status", "Error", JOptionPane.ERROR_MESSAGE);

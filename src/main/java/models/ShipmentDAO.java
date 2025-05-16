@@ -198,7 +198,7 @@ public class ShipmentDAO {
 
     // get shipment status method---------------
 
-    public Object[][] getShipmentStatus(int shipmentID) {
+    public static Object[][] getShipmentTracking(int shipmentID) {
         List<Object[]> shipmentData = new ArrayList<>();
         String sql = "SELECT Status,Location,EstimatedDateTime,Delay FROM AdminShipmentView WHERE shipmentID = ?";
 
