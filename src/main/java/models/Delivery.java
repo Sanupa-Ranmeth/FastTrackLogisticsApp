@@ -24,9 +24,18 @@ public class Delivery {
         this.actualDeliveryDateTime = actualDeliveryDateTime;
     }
 
-    //Constructor for adding shipments
-    public Delivery(int shipmentID, int driverID) {
+    //Constructor for updating shipments - admin shouldn't be able to update customer rating for the driver and actual delivery time
+    public Delivery(int shipmentID, int driverID, Integer location, boolean isDelayed, Integer delay, LocalDateTime estimatedDeliveryDate) {
         this.shipmentID = shipmentID;
+        this.driverID = driverID;
+        this.location = location;
+        this.isDelayed = isDelayed;
+        this.delay = delay;
+        this.estimatedDeliveryDate = estimatedDeliveryDate;
+    }
+
+    //Constructor for adding shipments (shipmentID will be obtained from Database)
+    public Delivery(int driverID) {
         this.driverID = driverID;
     }
 

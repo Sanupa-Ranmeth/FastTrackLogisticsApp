@@ -15,8 +15,12 @@ public class ShipmentController {
         this.cityDAO = new CityDAO();
     }
 
+    public int getUserIDbyUsername(String username) {
+        return shipmentDAO.getUserIDbyUsername(username);
+    }
+
     public boolean addShipment(Shipment shipment, String username) {
-        int senderID = shipmentDAO.getUserIDbyUsername(username);
+        int senderID = getUserIDbyUsername(username);
         if (senderID == -1) {
             return false;
         }
@@ -32,7 +36,7 @@ public class ShipmentController {
     }
 
     public Object[][] getCustomerShipments(String username) {
-        int senderID = shipmentDAO.getUserIDbyUsername(username);
+        int senderID = getUserIDbyUsername(username);
         if (senderID == -1) {
             return new Object[0][0];
         }

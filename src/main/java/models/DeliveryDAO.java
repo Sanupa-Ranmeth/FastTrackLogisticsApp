@@ -1,5 +1,6 @@
 package models;
 
+import com.mysql.cj.protocol.Resultset;
 import utilities.DatabaseConnection;
 
 import java.sql.*;
@@ -8,36 +9,125 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DeliveryDAO {
-    public boolean createDelivery (Delivery delivery) {
-        String sql = "INSERT INTO Delivery (ShipmentID, DriverID) VALUES (?,?)";
+    //This method will add the Shipment to the shipment table first, then add it to Delivery table
+    public boolean createDelivery (int senderID, Shipment shipment, Delivery delivery) {
+        String insertShipmentSQL = "INSERT INTO Shipment (SenderID, ReceiverName, Destination, DestinationAddress, Contents, isUrgent, preferredTimeSlot, DeliveryDate, Status)" +
+                                   "VALUES (?,?,?,?,?,?,?,?,?)";
+        String insertDeliverySQL = "INSERT INTO Delivery (ShipmentID, DriverID) VALUES (?,?)";
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, delivery.getShipmentID());
-            stmt.setObject(2, delivery.getDriverID() == -1 ? null : delivery.getDriverID());
+        //Use a database transaction
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            conn.setAutoCommit(false);
 
-            return stmt.executeUpdate() > 0;
+            //Inserting into Shipment
+            try (PreparedStatement shipmentStmt = conn.prepareStatement(insertShipmentSQL, Statement.RETURN_GENERATED_KEYS)) {
+                shipmentStmt.setInt(1, senderID);
+                shipmentStmt.setString(2, shipment.getReceiverName());
+                shipmentStmt.setObject(3, shipment.getDestination());
+                shipmentStmt.setString(4, shipment.getDestinationAddress());
+                shipmentStmt.setString(5, shipment.getContent());
+                shipmentStmt.setBoolean(6, shipment.isUrgent());
+                shipmentStmt.setObject(7, shipment.getPreferredTimeSlot());
+                shipmentStmt.setDate(8, shipment.getDeliveryDate() != null ? new java.sql.Date(shipment.getDeliveryDate().getTime()) : null);
+                shipmentStmt.setString(9, shipment.getStatus());
+
+                int affectedRows = shipmentStmt.executeUpdate();
+
+                if (affectedRows == 0) {
+                    conn.rollback();
+                    System.out.println("Inserting Shipment Failed");
+                    return false;
+                }
+
+                //Get generated shipmentID
+                try (ResultSet generatedKeys = shipmentStmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        int shipmentID = generatedKeys.getInt(1);
+
+                        //Inserting into delivery
+                        try (PreparedStatement deliveryStmt = conn.prepareStatement(insertDeliverySQL)) {
+                            deliveryStmt.setInt(1, shipmentID);
+                            deliveryStmt.setInt(2, delivery.getDriverID());
+
+                            if (deliveryStmt.executeUpdate() == 0) {
+                                conn.rollback();
+                                System.out.println("Inserting Delivery Failed");
+                                return false;
+                            }
+
+                            //If both succeed, commit transaction
+                            conn.commit();
+                            return true;
+                        }
+                    } else {
+                        conn.rollback();
+                        System.out.println("Getting shipmentID failed");
+                        return false;
+                    }
+                }
+            } catch (SQLException e) {
+                conn.rollback();
+                System.out.println("Transaction Failed: " + e.getMessage());
+                return false;
+            } finally {
+                conn.setAutoCommit(true);
+            }
         } catch (SQLException e) {
-            System.out.println("Create Delivery Failed: " + e.getMessage());
+            System.out.println("Database Connection or Rollback Failed: " + e.getMessage());
             return false;
         }
     }
 
-    public boolean updateDelivery (Delivery delivery) {
-        String sql = "UPDATE Delivery SET Location = ?, isDelayed = ?, Delay = ?, EstimatedDateTime = ?, ActualDeliveryDateTime = ? WHERE ShipmentID = ?";
+    //Both Shipment and Delivery tables should be updated
+    public boolean updateDelivery (Shipment shipment, Delivery delivery) {
+        String updateShipmentSQL = "UPDATE Shipment SET ReceiverName = ?, Destination = ?, DestinationAddress = ?, Contents = ?, isUrgent = ?, preferredTimeSlot = ?, DeliveryDate = ?, Status = ? WHERE ShipmentID = ?";
+        String updateDeliverySQL = "UPDATE Delivery SET DriverID = ?, Location = ?, isDelayed = ?, Delay = ?, EstimatedDateTime = ? WHERE ShipmentID = ?";
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setObject(1, delivery.getLocation());
-            stmt.setBoolean(2, delivery.isDelayed());
-            stmt.setObject(3, delivery.getDelay());
-            stmt.setObject(4, delivery.getEstimatedDeliveryDate());
-            stmt.setObject(5, delivery.getActualDeliveryDateTime());
-            stmt.setInt(6, delivery.getShipmentID());
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            conn.setAutoCommit(false);
 
-            return stmt.executeUpdate() > 0;
+            //Update Shipment table
+            try (PreparedStatement shipmentStmt = conn.prepareStatement(updateShipmentSQL)) {
+                shipmentStmt.setString(1, shipment.getReceiverName());
+                shipmentStmt.setObject(2, shipment.getDestination());
+                shipmentStmt.setString(3, shipment.getDestinationAddress());
+                shipmentStmt.setString(4, shipment.getContent());
+                shipmentStmt.setBoolean(5, shipment.isUrgent());
+                shipmentStmt.setObject(6, shipment.getPreferredTimeSlot());
+                shipmentStmt.setDate(7, shipment.getDeliveryDate() != null ? new java.sql.Date(shipment.getDeliveryDate().getTime()) : null);
+                shipmentStmt.setString(8, shipment.getStatus());
+                shipmentStmt.setInt(9, shipment.getShipmentID());
+
+                int shipmentUpdated = shipmentStmt.executeUpdate();
+                if (shipmentUpdated == 0) {
+                    conn.rollback();
+                    System.out.println("Shipment Update Failed");
+                    return false;
+                }
+            }
+
+            //Update Delivery table
+            try (PreparedStatement deliveryStmt = conn.prepareStatement(updateDeliverySQL)) {
+                deliveryStmt.setInt(1, delivery.getDriverID());
+                deliveryStmt.setObject(2, delivery.getLocation());
+                deliveryStmt.setBoolean(3, delivery.isDelayed());
+                deliveryStmt.setObject(4, delivery.getDelay());
+                deliveryStmt.setTimestamp(5, delivery.getEstimatedDeliveryDate() != null ? Timestamp.valueOf(delivery.getEstimatedDeliveryDate()) : null);
+                deliveryStmt.setInt(6, delivery.getShipmentID());
+
+                int deliveryUpdated = deliveryStmt.executeUpdate();
+                if (deliveryUpdated == 0) {
+                    conn.rollback();
+                    System.out.println("Delivery Update Failed");
+                    return false;
+                }
+            }
+
+            //If both succeed, commit them
+            conn.commit();
+            return true;
         } catch (SQLException e) {
-            System.out.println("Update Delivery Failed: " + e.getMessage());
+            System.out.println("Update Delivery Transaction Failed: " + e.getMessage());
             return false;
         }
     }

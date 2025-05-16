@@ -2,6 +2,7 @@ package controllers;
 
 import models.Delivery;
 import models.DeliveryDAO;
+import models.Shipment;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,12 +19,12 @@ public class DeliveryController {
         return deliveryDAO.disapproveShipment(shipmentID) && shipmentController.disapproveShipment(shipmentID);
     }
 
-    public boolean addDelivery(Delivery delivery) {
-        return deliveryDAO.createDelivery(delivery);
+    public boolean addDelivery(int SenderID, Shipment shipment, Delivery delivery) {
+        return deliveryDAO.createDelivery(SenderID, shipment, delivery);
     }
 
-    public boolean updateDelivery(Delivery delivery) {
-        return deliveryDAO.updateDelivery(delivery);
+    public boolean updateDelivery(Shipment shipment, Delivery delivery) {
+        return deliveryDAO.updateDelivery(shipment, delivery);
     }
 
     public boolean deleteDelivery(int shipmentID) {

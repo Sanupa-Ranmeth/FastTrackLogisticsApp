@@ -237,7 +237,7 @@ public class CustomerView extends JFrame {
                     Integer cityID = getSelectedCityID();
 
                     //Before updating the shipment via the full constructor, we need to fetch the SenderID from the database
-                    int senderID = shipmentDAO.getUserIDbyUsername(username);
+                    int senderID = shipmentController.getUserIDbyUsername(username);
                     if (senderID == -1) {
                         JOptionPane.showMessageDialog(customerBackPanel, "Sender not found in the database!", "Error", JOptionPane.ERROR_MESSAGE);
                         return;

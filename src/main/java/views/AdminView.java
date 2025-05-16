@@ -103,19 +103,6 @@ public class AdminView extends JFrame {
         }
     }
 
-    private void clearShipmentDetails() {
-        dropdownDestination.removeAllItems();
-        txtDeliveryDate.setText("");
-        dropdownTimeSlot.removeAllItems();
-        txtContent.setText("");
-        txtCustomer.setText("");
-        txtReceiver.setText("");
-        txtReceiver.setText("");
-        txtAreaDeliveryAddress.setText("");
-        checkboxUrgent.setSelected(false);
-        spinnerDelay.setValue(0);
-    }
-
     //Populating dropdowns
     //Populate TimeSlot Dropdown
     private void populateTimeSlotDropdown() {
@@ -295,6 +282,20 @@ public class AdminView extends JFrame {
                 return this;
             }
         });
+    }
+
+    private void clearShipmentDetails() {
+        txtShipmentID.setText("");
+        initiateDestinationDropdown();
+        txtDeliveryDate.setText("");
+        initiateTimeSlotDropdown();
+        txtContent.setText("");
+        txtCustomer.setText("");
+        txtReceiver.setText("");
+        txtReceiver.setText("");
+        txtAreaDeliveryAddress.setText("");
+        checkboxUrgent.setSelected(false);
+        spinnerDelay.setValue(0);
     }
 
     //Driver Table Methods
@@ -491,14 +492,13 @@ public class AdminView extends JFrame {
             }
         });
 
-        /*
+
         addShipmentButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String destination = dropdownDestination.getSelectedItem().toString();
                 int timeSlotID = getSelectedTimeSlotID();
                 String content = txtContent.getText();
-                int CustomerID = Integer.parseInt(txtCustomer.getText());
                 int DriverID = Integer.parseInt(dropdownDriver.getSelectedItem().toString());
                 String receiverName = txtReceiver.getText();
                 String address = txtAreaDeliveryAddress.getText();
@@ -517,7 +517,7 @@ public class AdminView extends JFrame {
                 }
 
                 //Validate input
-                if (destination.trim().isEmpty() || timeSlotID <= 0 || CustomerID <= 0 || receiverName.trim().isEmpty() || address.trim().isEmpty() || deliveryDateString.trim().isEmpty() || content.trim().isEmpty() || DriverID <= 0) {
+                if (destination.trim().isEmpty() || timeSlotID <= 0 || receiverName.trim().isEmpty() || address.trim().isEmpty() || deliveryDateString.trim().isEmpty() || content.trim().isEmpty() || DriverID <= 0) {
                     JOptionPane.showMessageDialog(AdminBackPanel, "Please Complete All Required Fields", "Required", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
@@ -526,19 +526,119 @@ public class AdminView extends JFrame {
                 int cityID = cityController.getCityIDByCityName(destination);
 
                 Shipment shipment = new Shipment(receiverName, cityID, address, content, isUrgent, deliveryDate, timeSlotID, "Approved");
-                Delivery delivery = new Delivery(shipment.getShipmentID(), DriverID);
+                Delivery delivery = new Delivery(DriverID);
+                int senderID = shipmentController.getUserIDbyUsername(username);
 
-                if (shipmentController.addShipment(shipment, username) && deliveryController.addDelivery(delivery)) {
+                if (deliveryController.addDelivery(senderID, shipment, delivery)) {
                     JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Added Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                     loadShipments();
                     clearShipmentDetails();
                 } else {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Failed to Add Delivery!", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Failed to Add Delivery", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
-        */
 
+        updateShipmentButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int selectedRow = tableShipments.getSelectedRow();
+
+                if (selectedRow < 0) {
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Please Select a Shipment to Update", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                int shipmentID = Integer.parseInt(txtShipmentID.getText());
+                String destination = dropdownDestination.getSelectedItem().toString();
+                int timeSlotID = getSelectedTimeSlotID();
+                String content = txtContent.getText();
+                int CustomerID = Integer.parseInt(txtCustomer.getText());
+                int DriverID = Integer.parseInt(dropdownDriver.getSelectedItem().toString());
+                String receiverName = txtReceiver.getText();
+                String address = txtAreaDeliveryAddress.getText();
+                boolean isUrgent = checkboxUrgent.isSelected();
+                String status = dropdownStatus.getSelectedItem().toString();
+                String location = dropdownLocation.getSelectedItem().toString();
+                int delay = ((Number) spinnerDelay.getValue()).intValue();
+                boolean isDelayed = delay > 0;
+
+                //Format date for Shipment (Requires Date)
+                String deliveryDateString = txtDeliveryDate.getText();
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                Date deliveryDate = null; //This will be inserted into the Shipment table
+
+                try {
+                    deliveryDate = sdf.parse(deliveryDateString);
+                } catch (ParseException ex) {
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Invalid Date Format. Use YYYY-MM-DD", "Date Format Error", JOptionPane.ERROR_MESSAGE);
+                    System.out.println("Parsing Delivery Date to be inserted into Shipment table failed.");
+                    return;
+                }
+
+                //Format date for Delivery (Requires LocalDateTime)
+                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                LocalDateTime deliveryDateTime = null; //This will be inserted into the Delivery Table
+
+                try {
+                    String deliveryDateTimeString = deliveryDateString + " " + tableShipments.getModel().getValueAt(selectedRow, 7).toString();
+                    deliveryDateTime = LocalDateTime.parse(deliveryDateTimeString, dtf);
+                } catch (DateTimeParseException ex) {
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Invalid Date Format: Use YYYY-MM-DD", "Date Format Error", JOptionPane.ERROR_MESSAGE);
+                    System.out.println("Parsing Delivery Date to be inserted into Delivery table failed.");
+                    return;
+                }
+
+                //Validate input
+                if (shipmentID <= 0 || destination.trim().isEmpty() || timeSlotID <= 0 || CustomerID <= 0 || receiverName.trim().isEmpty() || address.trim().isEmpty() || deliveryDateString.trim().isEmpty() || content.trim().isEmpty() || DriverID <= 0) {
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Please Complete All Required Fields", "Required", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                //getting City ID
+                int cityID = cityController.getCityIDByCityName(destination);
+                //getting current location
+                int locationID = cityController.getCityIDByCityName(location);
+
+                Shipment shipment = new Shipment(shipmentID, CustomerID, receiverName, cityID, address, content, isUrgent, deliveryDate, timeSlotID, status);
+                Delivery delivery = new Delivery(shipmentID, DriverID, locationID, isDelayed, delay, deliveryDateTime);
+
+                if (deliveryController.updateDelivery(shipment, delivery)) {
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Updated Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    loadShipments();
+                    clearShipmentDetails();
+                } else {
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Failed to Update Delivery", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        removeShipmentButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int selectedRow = tableShipments.getSelectedRow();
+                if (selectedRow < 0) {
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Please Select a Shipment to Update", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                int shipmentID = Integer.parseInt(txtShipmentID.getText());
+
+                //Validating
+                if (shipmentID <= 0) {
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Invalid Shipment ID", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                if (deliveryController.deleteDelivery(shipmentID)) {
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Deleted Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    loadShipments();
+                    clearShipmentDetails();
+                } else {
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Failed to Delete Delivery", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
 
 
 
