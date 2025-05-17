@@ -46,4 +46,17 @@ public class DeliveryController {
     public boolean updateDeliveryOperations(int shipmentID, String status, Integer location, int delay) {
         return deliveryDAO.updateDeliveryOperations(shipmentID, status, location, delay);
     }
+
+    // New methods for Driver view functionality
+    public Object[][] getAssignedShipments(int driverID) {
+        return deliveryDAO.getAssignedShipments(driverID);
+    }
+
+    public boolean updateDeliveryStatus(int shipmentID, String status, LocalDateTime actualDeliveryTime) {
+        return deliveryDAO.updateDeliveryStatus(shipmentID, status, actualDeliveryTime);
+    }
+
+    public Object[][] getDriverDeliveryHistory(int driverID) {
+        return deliveryDAO.getDriverDeliveryHistory(driverID);
+    }
 }

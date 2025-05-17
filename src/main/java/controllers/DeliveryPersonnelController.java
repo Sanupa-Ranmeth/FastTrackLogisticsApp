@@ -13,7 +13,7 @@ public class DeliveryPersonnelController {
     public boolean addDriver(String username, String password, String email, String driverName, String schedule, int routeID) {
         //Validate parameters
         if (username == null || password == null | email == null || driverName == null || schedule == null ||
-        username.trim().isEmpty() || password.trim().isEmpty() || email.trim().isEmpty() || driverName.trim().isEmpty() || schedule.trim().isEmpty() || routeID <= 0) {
+                username.trim().isEmpty() || password.trim().isEmpty() || email.trim().isEmpty() || driverName.trim().isEmpty() || schedule.trim().isEmpty() || routeID <= 0) {
             return false;
         }
 
@@ -23,7 +23,7 @@ public class DeliveryPersonnelController {
 
     public boolean updateDrivers(int driverID, String username, String password, String email, String driverName,  String schedule, int routeID){
         if (driverID <= 0 || username == null || password == null || email == null || driverName == null || schedule == null ||
-        username.trim().isEmpty() || password.trim().isEmpty() || email.trim().isEmpty() || driverName.trim().isEmpty() || schedule.trim().isEmpty() || routeID <= 0) {
+                username.trim().isEmpty() || password.trim().isEmpty() || email.trim().isEmpty() || driverName.trim().isEmpty() || schedule.trim().isEmpty() || routeID <= 0) {
             return false;
         }
         DeliveryPersonnel driver = new DeliveryPersonnel(driverID, username, password, email, driverName, schedule, routeID);
@@ -41,4 +41,16 @@ public class DeliveryPersonnelController {
         return driverDAO.getAllDeliveryPersonnel();
     }
 
+    // New methods for Driver view functionality
+    public int getDriverIDFromUsername(String username) {
+        return driverDAO.getUserIDbyUsername(username);
+    }
+
+    public String getDriverNameByID(int driverID) {
+        return driverDAO.getDriverNameByID(driverID);
+    }
+
+    public int getDriverRouteID(int driverID) {
+        return driverDAO.getDriverRouteID(driverID);
+    }
 }

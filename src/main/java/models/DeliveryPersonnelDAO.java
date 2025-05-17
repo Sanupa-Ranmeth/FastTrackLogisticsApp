@@ -155,7 +155,7 @@ public class DeliveryPersonnelDAO {
     }
 
     //Method to get userID from username
-    private int getUserIDbyUsername(String username) {
+    public int getUserIDbyUsername(String username) {
         String sql = "SELECT UserID FROM `User` WHERE Username = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -168,6 +168,41 @@ public class DeliveryPersonnelDAO {
             }
         } catch (SQLException e) {
             System.out.println("Failed to Get UserID: " + e.getMessage());
+        }
+        return -1;
+    }
+
+    // New methods for Driver view functionality
+    public String getDriverNameByID(int driverID) {
+        String sql = "SELECT DriverName FROM Driver WHERE DriverID = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, driverID);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString("DriverName");
+            }
+        } catch (SQLException e) {
+            System.out.println("Failed to Get Driver Name: " + e.getMessage());
+        }
+        return "Unknown Driver";
+    }
+
+    public int getDriverRouteID(int driverID) {
+        String sql = "SELECT RouteID FROM Driver WHERE DriverID = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, driverID);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt("RouteID");
+            }
+        } catch (SQLException e) {
+            System.out.println("Failed to Get Driver Route: " + e.getMessage());
         }
         return -1;
     }

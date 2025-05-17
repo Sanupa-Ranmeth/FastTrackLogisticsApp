@@ -105,4 +105,25 @@ public class RouteDAO {
 
         return routeID;
     }
+
+    public Object[][] getAllRoutes() {
+        List<Object[]> routes = new ArrayList<>();
+        String sql = "SELECT RouteID, RouteName FROM Route";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                routes.add(new Object[] {
+                        rs.getInt("RouteID"),
+                        rs.getString("RouteName")
+                });
+            }
+        } catch (SQLException e) {
+            System.out.println("Failed to get all routes: " + e.getMessage());
+        }
+
+        return routes.toArray(new Object[0][0]);
+    }
 }

@@ -274,48 +274,208 @@ public class DeliveryDAO {
     }
 
     public boolean updateDeliveryOperations(int shipmentID, String status, Integer location, int delay) {
-        String updateShipmentSQL = "UPDATE Shipment SET Status = ? WHERE ShipmentID = ?";
-        String updateDeliverySQL = "UPDATE Delivery SET Location = ?, isDelayed = ?, Delay = ? WHERE ShipmentID = ?";
+        // Define allowed status values based on your database schema constraints
+        final String[] ALLOWED_STATUSES = {"Pending", "Approved", "In Transit", "Delivered", "Failed Delivery", "Delay"};
 
-        try (Connection conn = DatabaseConnection.getConnection()) {
+        // Validate status
+        boolean validStatus = false;
+        for (String allowedStatus : ALLOWED_STATUSES) {
+            if (allowedStatus.equals(status)) {
+                validStatus = true;
+                break;
+            }
+        }
+
+        if (!validStatus) {
+            System.out.println("Invalid status value: " + status);
+            return false;
+        }
+
+        Connection connection = null;
+        PreparedStatement updateShipmentStmt = null;
+        PreparedStatement updateDeliveryStmt = null;
+
+        try {
+            connection = DatabaseConnection.getConnection();
+            connection.setAutoCommit(false);  // Start transaction
+
+            // Update Shipment status
+            String updateShipmentSQL = "UPDATE Shipment SET Status = ? WHERE ShipmentID = ?";
+            updateShipmentStmt = connection.prepareStatement(updateShipmentSQL);
+            updateShipmentStmt.setString(1, status);
+            updateShipmentStmt.setInt(2, shipmentID);
+            int shipmentUpdated = updateShipmentStmt.executeUpdate();
+
+            // Update Delivery details
+            String updateDeliverySQL = "UPDATE Delivery SET Location = ?, isDelayed = ?, Delay = ? WHERE ShipmentID = ?";
+            updateDeliveryStmt = connection.prepareStatement(updateDeliverySQL);
+
+            // Set location (may be null)
+            if (location != null) {
+                updateDeliveryStmt.setInt(1, location);
+            } else {
+                updateDeliveryStmt.setNull(1, java.sql.Types.INTEGER);
+            }
+
+            // Set isDelayed based on delay value
+            updateDeliveryStmt.setBoolean(2, delay > 0);
+            updateDeliveryStmt.setInt(3, delay);
+            updateDeliveryStmt.setInt(4, shipmentID);
+
+            int deliveryUpdated = updateDeliveryStmt.executeUpdate();
+
+            connection.commit();  // Commit transaction
+            return (shipmentUpdated > 0 && deliveryUpdated > 0);
+
+        } catch (SQLException e) {
+            try {
+                if (connection != null) {
+                    connection.rollback();  // Rollback transaction on error
+                }
+            } catch (SQLException ex) {
+                System.out.println("Failed to rollback transaction: " + ex.getMessage());
+            }
+
+            System.out.println("Update Delivery Operations Transaction Failed: " + e.getMessage());
+            return false;
+
+        } finally {
+            try {
+                if (updateShipmentStmt != null) updateShipmentStmt.close();
+                if (updateDeliveryStmt != null) updateDeliveryStmt.close();
+                if (connection != null) {
+                    connection.setAutoCommit(true);  // Reset auto-commit
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                System.out.println("Failed to close resources: " + e.getMessage());
+            }
+        }
+    }
+
+    public Object[][] getAssignedShipments(int driverID) {
+        List<Object[]> shipments = new ArrayList<>();
+        String sql = "SELECT s.ShipmentID, u.Username AS Sender, s.ReceiverName, c.CityName, s.DestinationAddress, " +
+                "s.Contents, s.Status, s.isUrgent, d.EstimatedDateTime, cl.CityName AS CurrentLocation " +
+                "FROM Shipment s " +
+                "JOIN Delivery d ON s.ShipmentID = d.ShipmentID " +
+                "JOIN `User` u ON s.SenderID = u.UserID " +
+                "JOIN City c ON s.Destination = c.CityID " +
+                "LEFT JOIN City cl ON d.Location = cl.CityID " +
+                "WHERE d.DriverID = ? AND s.Status NOT IN ('Delivered', 'Cancelled')";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, driverID);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                shipments.add(new Object[] {
+                        rs.getInt("ShipmentID"),
+                        rs.getString("Sender"),
+                        rs.getString("ReceiverName"),
+                        rs.getString("CityName"),
+                        rs.getString("DestinationAddress"),
+                        rs.getString("Contents"),
+                        rs.getString("Status"),
+                        rs.getBoolean("isUrgent"),
+                        rs.getTimestamp("EstimatedDateTime") != null ?
+                                rs.getTimestamp("EstimatedDateTime").toLocalDateTime() : null,
+                        rs.getString("CurrentLocation")
+                });
+            }
+        } catch (SQLException e) {
+            System.out.println("Failed to get assigned shipments: " + e.getMessage());
+        }
+
+        return shipments.toArray(new Object[0][0]);
+    }
+
+    public boolean updateDeliveryStatus(int shipmentID, String status, LocalDateTime actualDeliveryTime) {
+        Connection conn = null;
+        try {
+            conn = DatabaseConnection.getConnection();
             conn.setAutoCommit(false);
 
-            try (PreparedStatement stmt1 = conn.prepareStatement(updateShipmentSQL);
-                 PreparedStatement stmt2 = conn.prepareStatement(updateDeliverySQL)) {
+            // Update shipment status
+            String shipmentSql = "UPDATE Shipment SET Status = ? WHERE ShipmentID = ?";
+            try (PreparedStatement shipmentStmt = conn.prepareStatement(shipmentSql)) {
+                shipmentStmt.setString(1, status);
+                shipmentStmt.setInt(2, shipmentID);
 
-                //Updating shipment table
-                stmt1.setString(1, status);
-                stmt1.setInt(2, shipmentID);
-                int shipmentRows = stmt1.executeUpdate();
-
-                //Updating Delivery table
-                stmt2.setObject(1, location);
-                if (delay > 0) {
-                    stmt2.setBoolean(2, true);
-                } else {
-                    stmt2.setBoolean(2, false);
-                }
-                stmt2.setInt(3, delay);
-                stmt2.setInt(4, shipmentID);
-                int DeliveryRows = stmt2.executeUpdate();
-
-                if (shipmentRows > 0 && DeliveryRows > 0) {
-                    conn.commit();
-                    return true;
-                } else {
+                int shipmentUpdated = shipmentStmt.executeUpdate();
+                if (shipmentUpdated == 0) {
                     conn.rollback();
                     return false;
                 }
-            } catch (SQLException e) {
-                conn.rollback();
-                System.out.println("Update Delivery Operations Transaction Failed: " + e.getMessage());
-                return false;
-            } finally {
-                conn.setAutoCommit(true);
+            }
+
+            // Update delivery actual time if delivered
+            if (actualDeliveryTime != null) {
+                String deliverySql = "UPDATE Delivery SET ActualDeliveryDateTime = ? WHERE ShipmentID = ?";
+                try (PreparedStatement deliveryStmt = conn.prepareStatement(deliverySql)) {
+                    deliveryStmt.setTimestamp(1, java.sql.Timestamp.valueOf(actualDeliveryTime));
+                    deliveryStmt.setInt(2, shipmentID);
+
+                    int deliveryUpdated = deliveryStmt.executeUpdate();
+                    if (deliveryUpdated == 0) {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+            }
+
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            System.out.println("Failed to update delivery status: " + e.getMessage());
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    System.out.println("Rollback failed: " + ex.getMessage());
+                }
+            }
+            return false;
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    System.out.println("Failed to reset auto-commit or close connection: " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    public Object[][] getDriverDeliveryHistory(int driverID) {
+        List<Object[]> history = new ArrayList<>();
+        String sql = "SELECT s.ShipmentID, d.ActualDeliveryDateTime, s.Status, s.ReceiverName, d.Rating " +
+                "FROM Shipment s " +
+                "JOIN Delivery d ON s.ShipmentID = d.ShipmentID " +
+                "WHERE d.DriverID = ? AND s.Status IN ('Delivered', 'Failed Delivery') " +
+                "ORDER BY d.ActualDeliveryDateTime DESC";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, driverID);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                history.add(new Object[] {
+                        rs.getInt("ShipmentID"),
+                        rs.getTimestamp("ActualDeliveryDateTime") != null ?
+                                rs.getTimestamp("ActualDeliveryDateTime").toLocalDateTime() : null,
+                        rs.getString("Status"),
+                        rs.getString("ReceiverName"),
+                        rs.getObject("Rating") != null ? rs.getInt("Rating") : "Not Rated"
+                });
             }
         } catch (SQLException e) {
-            System.out.println("Database Error: " + e.getMessage());
-            return false;
+            System.out.println("Failed to get driver delivery history: " + e.getMessage());
         }
+
+        return history.toArray(new Object[0][0]);
     }
 }
