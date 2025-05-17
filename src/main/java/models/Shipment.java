@@ -1,43 +1,32 @@
 package models;
 
-import java.util.Date;
-
 public class Shipment {
     private int shipmentID;
     private int senderID;
     private String receiverName;
-    private Integer destination;
-    private String destinationAddress;
+    private String destination;
     private String content;
     private boolean isUrgent;
-    private Date deliveryDate;
-    private Integer preferredTimeSlot; //Integer - can be null unlike int
-    private String status;
+    private String preferredTimeSlot;
 
     //Full Constructor
-    public Shipment(int shipmentID, int senderID, String receiverName, Integer destination, String destinationAddress, String content, boolean isUrgent, Date deliveryDate, Integer preferredTimeSlot, String status) {
+    public Shipment(int shipmentID, int senderID, String receiverName, String destination, String content, boolean isUrgent, String preferredTimeSlot) {
         this.shipmentID = shipmentID;
         this.senderID = senderID;
         this.receiverName = receiverName;
         this.destination = destination;
-        this.destinationAddress = destinationAddress;
         this.content = content;
         this.isUrgent = isUrgent;
-        this.deliveryDate = deliveryDate;
         this.preferredTimeSlot = preferredTimeSlot;
-        this.status = status;
     }
 
     //Partial Constructor for Adding Shipments (ShipmentID is auto-incremented)
-    public Shipment(String receiverName, Integer destination, String destinationAddress, String content, boolean isUrgent, Date deliveryDate, Integer preferredTimeSlot, String status) {
+    public Shipment(String receiverName, String destination, String content, boolean isUrgent, String preferredTimeSlot) {
         this.receiverName = receiverName;
         this.destination = destination;
-        this.destinationAddress = destinationAddress;
         this.content = content;
         this.isUrgent = isUrgent;
-        this.deliveryDate = deliveryDate;
         this.preferredTimeSlot = preferredTimeSlot;
-        this.status = status;
     }
 
     //Getters
@@ -53,12 +42,8 @@ public class Shipment {
         return receiverName;
     }
 
-    public Integer getDestination() {
+    public String getDestination() {
         return destination;
-    }
-
-    public String getDestinationAddress() {
-        return destinationAddress;
     }
 
     public String getContent() {
@@ -69,32 +54,7 @@ public class Shipment {
         return isUrgent;
     }
 
-    public Date getDeliveryDate() {
-        return deliveryDate;
-    }
-
-    public Integer getPreferredTimeSlot() {
+    public String getPreferredTimeSlot() {
         return preferredTimeSlot;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    //Setters (if needed for updates)
-    public void setDestination(Integer destination) {
-        this.destination = destination;
-    }
-
-    public void setDeliveryDate(Date deliveryDate) {
-        this.deliveryDate = deliveryDate;
-    }
-
-    public void setPreferredTimeSlot(Integer preferredTimeSlot) {
-        this.preferredTimeSlot = preferredTimeSlot;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
     }
 }
