@@ -147,8 +147,9 @@ public class DeliveryPersonnelDAO {
                         rs.getString("DriverName"),
                         rs.getString("Schedule"),
                         rs.getInt("RouteID"),
-                        rs.getBoolean("isAvailable"),
-                        rating
+                        rating,
+                        rs.getBoolean("isAvailable")
+
                 });
             }
         } catch (SQLException e) {
@@ -158,12 +159,13 @@ public class DeliveryPersonnelDAO {
     }
 
     //Method to get userID from username
-    int getUserIDbyUsername(String Username) {
+    public int getUserIDbyUsername(String Username) {
         String sql = "SELECT UserID FROM `User` WHERE Username = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, Username);
+
+            stmt.setString(1, Username.trim());
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {

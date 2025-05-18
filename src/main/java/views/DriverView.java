@@ -2,7 +2,6 @@ package views;
 
 import javax.swing.*;
 import controllers.DeliveryPersonnelController;
-import models.DeliveryPersonnelDAO;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -18,7 +17,7 @@ public class DriverView extends JFrame {
     private JButton updateStatusButton;
     private JButton updateEstimationButton;
     private JButton viewHistoryButton;
-    private JCheckBox isAvailableCheckBox;
+    private JButton isAvailableButton;
 
     private DeliveryPersonnelController driverController = new DeliveryPersonnelController();
 
@@ -29,26 +28,36 @@ public class DriverView extends JFrame {
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        //Set initial state from DB
-        boolean isAvailable = driverController.getAvailability(username);
-        isAvailableCheckBox.setSelected(isAvailable);
+        int userId = driverController.getUserIDbyUsername(username);
+        System.out.println("User ID: " + userId);
 
-        isAvailableCheckBox.addActionListener(new ActionListener() {
+
+        // Set initial state from DB
+        boolean isAvailable = driverController.getAvailability(userId);
+        isAvailableButton.setText(isAvailable ? "Make UnAvailable" : "Make Available");
+
+        // Store availability state
+        final boolean[] availabilityState = {isAvailable};
+
+        isAvailableButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                    boolean selected = isAvailableCheckBox.isSelected(); //true= ON | false = OFF
-                    int availabilityValue = selected?1:0;
+                // Toggle the state
+                availabilityState[0] = !availabilityState[0];
+                int availabilityValue = availabilityState[0] ? 1 : 0;
 
-                    driverController.updateAvailability(username, availabilityValue);
+                // Update in DB
+                driverController.updateAvailability(userId, availabilityValue);
 
-                    //Notify the USER
-                    String message = selected? "You are now marked as Available." : "You are now marked as UNAVAILABLE.";
-                    JOptionPane.showMessageDialog(null, message);
+                // Update button text
+                isAvailableButton.setText(availabilityState[0] ? "Make UnAvailable " : "Make Available");
 
-
-
+                // Notify user
+                String message = availabilityState[0] ? "You are now marked as Available." : "You are now marked as UNAVAILABLE.";
+                JOptionPane.showMessageDialog(null, message);
             }
         });
     }
+
 
 }

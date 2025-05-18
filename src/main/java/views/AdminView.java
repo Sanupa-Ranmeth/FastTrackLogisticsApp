@@ -48,7 +48,6 @@ public class AdminView extends JFrame {
     private JTextField txtDriverName;
     private JTextField txtSchedule;
     private JTextField txtRouteID;
-    private JTextField txtIsAvailable;
 
     private JButton clearFormButton;
     private JTextField txtRating;
@@ -319,7 +318,6 @@ public class AdminView extends JFrame {
         txtDriverName.setText("");
         txtSchedule.setText("");
         txtRouteID.setText("");
-        txtIsAvailable.setText("1");
     }
 
     //------------------ADMIN VIEW--------------------------------------------------------------------------------------------------------------------
@@ -785,46 +783,6 @@ public class AdminView extends JFrame {
             }
         });
 
-        //Populate form
-
-
-        /*tableDrivers.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                int selectedRow = tableDrivers.getSelectedRow();
-                if (selectedRow >= 0) {
-                    txtDriverID.setText(tableDrivers.getValueAt(selectedRow, 0).toString());
-                    txtDriverName.setText(tableDrivers.getValueAt(selectedRow, 1).toString());
-                    txtSchedule.setText(tableDrivers.getValueAt(selectedRow, 2).toString());
-                    txtRouteID.setText(tableDrivers.getValueAt(selectedRow, 3).toString());
-
-
-                    int tinyIntValue = Integer.parseInt(tableDrivers.getValueAt(selectedRow,4).toString());
-                    txtIsAvailable.setText(tinyIntValue ==  1 ? "Available" : "Not Available");
-                    // Get the value at column 4 as a string
-
-                    Object val = tableDrivers.getValueAt(selectedRow, 4);
-                    String strVal = val != null ? val.toString() : "";
-
-                    int tinyIntValue = 0;  // default value if parsing fails
-                    if (strVal.matches("\\d+")) { // only digits
-                        tinyIntValue = Integer.parseInt(strVal);
-                    } else {
-                        tinyIntValue = 0;  // default or treat "N/A" as 0
-                    }
-
-                    // Set the availability text based on tinyIntValue
-                    txtIsAvailable.setText(tinyIntValue == 1 ? "Available" : "Not Available");
-
-
-
-
-
-                } else {
-                    clearDriverForm();
-                }
-            }
-        });  */
 
         tableDrivers.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             @Override
@@ -835,24 +793,6 @@ public class AdminView extends JFrame {
                     txtDriverName.setText(tableDrivers.getValueAt(selectedRow, 1).toString());
                     txtSchedule.setText(tableDrivers.getValueAt(selectedRow, 2).toString());
                     txtRouteID.setText(tableDrivers.getValueAt(selectedRow, 3).toString());
-
-                    Object val = tableDrivers.getValueAt(selectedRow, 5);
-                    String strVal = val != null ? val.toString() : "";
-
-                    int tinyIntValue = 0;
-                    if (strVal.matches("\\d+")) {
-                        tinyIntValue = Integer.parseInt(strVal);
-                    } else {
-                        tinyIntValue = 0;
-                    }
-
-                    if (txtIsAvailable != null) {
-                        txtIsAvailable.setText(tinyIntValue == 1 ? "Available" : "Not Available");
-                    } else {
-                        System.out.println("txtIsAvailable is NULL!");
-                    }
-
-
 
                 } else {
                     clearDriverForm();

@@ -78,25 +78,25 @@ public class DeliveryPersonnelController {
 
     }
 
-    public void updateAvailability(String DriverName, int value) {
+    public void updateAvailability(int DriverID, int value) {
         try (Connection conn = DatabaseConnection.getConnection()) {
-            String sql = "UPDATE Driver SET isAvailable = ? WHERE DriverName = ?";
+            String sql = "UPDATE Driver SET isAvailable = ? WHERE DriverID = ?";
             PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setInt(1, value);
-            stmt.setString(2, DriverName.trim()); // trim spaces to avoid mismatch
+            stmt.setInt(2, DriverID); // trim spaces to avoid mismatch
             int rows = stmt.executeUpdate();
-            System.out.println("updateAvailability called: driverName='" + DriverName + "', value=" + value + ", rows affected=" + rows);
+            System.out.println("updateAvailability called: driverName='" + DriverID + "', value=" + value + ", rows affected=" + rows);
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
 
-    public boolean getAvailability(String DriverName) {
+    public boolean getAvailability(int DriverID) {
         try (Connection conn = DatabaseConnection.getConnection()) {
-            String sql = "SELECT isAvailable FROM Driver WHERE DriverName = ?";
+            String sql = "SELECT isAvailable FROM Driver WHERE DriverID = ?";
             PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setString(1, DriverName);
+            stmt.setInt(1, DriverID);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return rs.getInt("isAvailable") == 1;
@@ -105,6 +105,13 @@ public class DeliveryPersonnelController {
             e.printStackTrace();
         }
         return false;
+    }
+
+
+
+
+    public int getUserIDbyUsername(String username) {
+        return driverDAO.getUserIDbyUsername(username);
     }
 
 
