@@ -42,7 +42,7 @@ public class DeliveryPersonnelDAO {
             return false;
         }
 
-        String sql = "INSERT INTO Driver (DriverID, DriverName, Schedule, RouteID) VALUES (?,?,?,?)";
+        String sql = "INSERT INTO Driver (DriverID, DriverName, Schedule, RouteID , isAvailable) VALUES (?,?,?,?,?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -50,6 +50,7 @@ public class DeliveryPersonnelDAO {
             stmt.setString(2, driver.getDriverName());
             stmt.setString(3, driver.getSchedule());
             stmt.setInt(4, driver.getRouteID());
+            stmt.setBoolean(5, driver.isAvailable());
 
             boolean success = stmt.executeUpdate() > 0;
             if (success) {
@@ -63,14 +64,15 @@ public class DeliveryPersonnelDAO {
     }
 
     public boolean updateDeliveryPersonnel(DeliveryPersonnel driver) {
-        String sql = "UPDATE Driver SET DriverName = ?, Schedule = ?, RouteID = ? WHERE DriverID = ?";
+        String sql = "UPDATE Driver SET DriverName = ?, Schedule = ?, RouteID = ? , isAvailable= ? WHERE DriverID = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, driver.getDriverName());
             stmt.setString(2, driver.getSchedule());
             stmt.setInt(3, driver.getRouteID());
-            stmt.setInt(4, driver.getDriverID());
+            stmt.setBoolean(4, driver.isAvailable());
+            stmt.setInt(5, driver.getDriverID());
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             System.out.println("Update Delivery Personnel Failed: " + e.getMessage());
@@ -132,7 +134,7 @@ public class DeliveryPersonnelDAO {
 
     public Object[][] getAllDeliveryPersonnel() {
         List<Object[]> driverData = new ArrayList<>();
-        String sql = "SELECT d.DriverID, d.DriverName, d.Schedule, d.RouteID, d.AverageRating FROM DriverInfoView d";
+        String sql = "SELECT d.DriverID, d.DriverName, d.Schedule, d.RouteID, d.AverageRating ,d.isAvailable FROM DriverInfoView d";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -145,6 +147,7 @@ public class DeliveryPersonnelDAO {
                         rs.getString("DriverName"),
                         rs.getString("Schedule"),
                         rs.getInt("RouteID"),
+                        rs.getBoolean("isAvailable"),
                         rating
                 });
             }
@@ -155,12 +158,12 @@ public class DeliveryPersonnelDAO {
     }
 
     //Method to get userID from username
-    private int getUserIDbyUsername(String username) {
+    int getUserIDbyUsername(String Username) {
         String sql = "SELECT UserID FROM `User` WHERE Username = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, username);
+            stmt.setString(1, Username);
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
@@ -196,4 +199,5 @@ public class DeliveryPersonnelDAO {
 
         return driverNames;  // Return the list of driver names
     }
+
 }
