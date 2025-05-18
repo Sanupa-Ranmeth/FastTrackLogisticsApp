@@ -142,14 +142,17 @@ public class DeliveryPersonnelDAO {
             while (rs.next()) {
                 double avgRating = rs.getDouble("AverageRating");
                 Object rating = rs.wasNull() ? "N/A" : avgRating;
+
+                boolean available = rs.getBoolean("isAvailable");
+                Object availability = rs.wasNull() ? "Unknown" : (available ? "Available" : "Unavailable");
+
                 driverData.add(new Object[]{
                         rs.getInt("DriverID"),
                         rs.getString("DriverName"),
                         rs.getString("Schedule"),
                         rs.getInt("RouteID"),
                         rating,
-                        rs.getBoolean("isAvailable")
-
+                        availability
                 });
             }
         } catch (SQLException e) {
@@ -181,7 +184,7 @@ public class DeliveryPersonnelDAO {
     public List<String> getALLDriverNames() {
         List<String> driverNames = new ArrayList<>();  // Create an empty list to store driver names
 
-        String sql = "SELECT DriverName FROM Driver";  // SQL query to select DriverName from Driver table
+        String sql = "SELECT DriverName FROM Driver WHERE isAvailable = true";  // SQL query to select DriverName from Driver table
 
         try (
                 // Establish connection, prepare statement, and execute the query

@@ -48,6 +48,8 @@ public class AdminView extends JFrame {
     private JTextField txtDriverName;
     private JTextField txtSchedule;
     private JTextField txtRouteID;
+    private JButton DriverAvailabilityAdminView;
+
 
     private JButton clearFormButton;
     private JTextField txtRating;
@@ -74,7 +76,6 @@ public class AdminView extends JFrame {
     private JTextField txtReceiver;
     private JTextField txtShipmentID;
     private JButton addShipmentButton;
-    private JCheckBox DriverAvailabilityAdminView;
 
     private DeliveryPersonnelController driverController;
     private TimeSlotController timeSlotController = new TimeSlotController();
@@ -794,20 +795,49 @@ public class AdminView extends JFrame {
                     txtSchedule.setText(tableDrivers.getValueAt(selectedRow, 2).toString());
                     txtRouteID.setText(tableDrivers.getValueAt(selectedRow, 3).toString());
 
+                    Object availabilityValue = tableDrivers.getValueAt(selectedRow, 5);
+                    boolean isAvailable = false;
+
+                    if (availabilityValue instanceof Integer) {
+                        isAvailable = ((Boolean) availabilityValue);
+                    } else if (availabilityValue instanceof Integer) {
+                        isAvailable = ((Integer)availabilityValue) == 1;
+                    }  else if (availabilityValue instanceof String) {
+                        isAvailable = availabilityValue.toString().equalsIgnoreCase("available") || availabilityValue.equals("1");
+                    }
+
+                    DriverAvailabilityAdminView.setText(isAvailable ? "Mark as Unavailable" : "Mark as Available");
+                    System.out.println("Availability raw value: " + availabilityValue); // Debug
+                    System.out.println("Available value: " + isAvailable);
+
+
+
                 } else {
                     clearDriverForm();
                 }
             }
         });
 
+
         DriverAvailabilityAdminView.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                int selectedRow = tableDrivers.getSelectedRow();
-                if (selectedRow >= 0) {
-                    int driverID = (int) tableDrivers.getValueAt(selectedRow, 0);
 
-                }
+                int driverID = (Integer) tableDrivers.getValueAt(tableDrivers.getSelectedRow(), 0);
+                boolean availability = DeliveryPersonnelController.getAvailability(driverID);
+
+                boolean availabilityState = !availability;
+                int availabilityValue = availabilityState ? 1: 0 ;
+
+                DriverAvailabilityAdminView.setText(availabilityState ? "Mark as Unavailable" : "Mark as Available");
+                DeliveryPersonnelController.updateAvailability(driverID, availabilityValue);
+
+                String message = availabilityState ? "Driver is now marked as Available." : "Driver is now marked as UNAVAILABLE.";
+                JOptionPane.showMessageDialog(null, message);
+
+                refreshDriverTable();
+                dropdownDriver.removeAllItems();
+                populateDriverDropdown();
 
             }
         });
@@ -817,7 +847,6 @@ public class AdminView extends JFrame {
     //Populate DriverDropDown
     public void  populateDriverDropdown() {
 
-        dropdownDriver.removeAllItems();  //  Clear previous items
 
         //Fetch Driver Names
         List<String> driverNames = driverController.getAllDriverNames();

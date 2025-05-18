@@ -78,7 +78,7 @@ public class DeliveryPersonnelController {
 
     }
 
-    public void updateAvailability(int DriverID, int value) {
+    public static void updateAvailability(int DriverID, int value) {
         try (Connection conn = DatabaseConnection.getConnection()) {
             String sql = "UPDATE Driver SET isAvailable = ? WHERE DriverID = ?";
             PreparedStatement stmt = conn.prepareStatement(sql);
@@ -92,7 +92,7 @@ public class DeliveryPersonnelController {
     }
 
 
-    public boolean getAvailability(int DriverID) {
+    public static boolean getAvailability(int DriverID) {
         try (Connection conn = DatabaseConnection.getConnection()) {
             String sql = "SELECT isAvailable FROM Driver WHERE DriverID = ?";
             PreparedStatement stmt = conn.prepareStatement(sql);
