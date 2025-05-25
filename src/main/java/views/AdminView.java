@@ -77,6 +77,7 @@ public class AdminView extends JFrame {
     private ShipmentController shipmentController = new ShipmentController();
     private RouteController routeController = new RouteController();
     private CityController cityController;
+    private NotificationController notificationController;
 
     //Shipment Table Methods
     private void loadShipments() {
@@ -322,6 +323,7 @@ public class AdminView extends JFrame {
         //---------------Initializing Controllers----------------//
         deliveryController = new DeliveryController();
         cityController = new CityController();
+        notificationController = new NotificationController();
         //------------------------------------------------------//
 
         //Shipment table model
@@ -404,9 +406,11 @@ public class AdminView extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 int shipmentID = Integer.parseInt(txtShipmentID.getText());
                 int driverID = Integer.parseInt(dropdownDriver.getSelectedItem().toString());
+                int userID = Integer.parseInt(txtCustomer.getText());
 
                 if (deliveryController.approveDelivery(shipmentID, driverID)) {
                     JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Approved Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    notificationController.generateApproveDeliveryNotification(shipmentID, userID); //Send approve delivery notification
                     clearShipmentDetails();
                     loadShipments();
                 }
@@ -417,9 +421,11 @@ public class AdminView extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 int shipmentID = Integer.parseInt(txtShipmentID.getText());
+                int userID = Integer.parseInt(txtCustomer.getText());
 
                 if (deliveryController.disapproveDelivery(shipmentID)) {
                     JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Disapproved!", "Disapproved", JOptionPane.INFORMATION_MESSAGE);
+                    notificationController.generateDisapproveDeliveryNotification(shipmentID, userID); //Send disapprove delivery notification
                     clearShipmentDetails();
                     loadShipments();
                 }
@@ -435,6 +441,7 @@ public class AdminView extends JFrame {
                     DefaultTableModel model = (DefaultTableModel) tableShipments.getModel();
 
                     int shipmentID = Integer.parseInt(txtShipmentID.getText());
+                    int userID = Integer.parseInt(txtCustomer.getText());
                     String deliveryDateString = model.getValueAt(selectedRow, 8).toString();
                     String timeSlotString = model.getValueAt(selectedRow, 7).toString();
 
@@ -458,6 +465,7 @@ public class AdminView extends JFrame {
 
                             if (deliveryController.setDeliveryEstimation(shipmentID, estimation)) {
                                 JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Estimation Successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                                notificationController.generateDeliveryEstimationNotification(shipmentID, userID, String.valueOf(estimation)); //Send delivery estimation notification
                             } else {
                                 JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Estimation Failed!", "Failure", JOptionPane.ERROR_MESSAGE);
                             }
@@ -479,10 +487,12 @@ public class AdminView extends JFrame {
                 String status = dropdownStatus.getSelectedItem().toString();
                 String location = dropdownLocation.getSelectedItem().toString();
                 int delay = ((Number) spinnerDelay.getValue()).intValue();
+                int userID = Integer.parseInt(txtCustomer.getText());
 
                 try {
                     if (deliveryController.updateDeliveryOperations(shipmentID, status, cityController.getCityIDByCityName(location), delay)) {
                         JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Operations Updated Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        notificationController.generateUpdateDeliveryNotification(shipmentID, userID, status, location, delay); //Send update delivery notification
                     }
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Operations Update Failed!\n" + ex.getMessage(), "Failure", JOptionPane.ERROR_MESSAGE);

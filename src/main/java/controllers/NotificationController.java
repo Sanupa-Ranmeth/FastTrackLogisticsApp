@@ -8,7 +8,7 @@ import java.util.List;
 public class NotificationController {
     private NotificationDAO notificationDAO = new NotificationDAO();
 
-    public boolean generateUpdateDeliveryNotification(int packageID, int userID, String status, String location, String delay) {
+    public boolean generateUpdateDeliveryNotification(int packageID, int userID, String status, String location, int delay) {
         String message = "Your package " + packageID + " is " + status +
                 ". It is currently in " + location +
                 " and en route to you with " + delay + " delay.";
