@@ -32,6 +32,7 @@ public class CustomerView extends JFrame {
     private JPanel customerBackPanel;
     private JComboBox dropdownDestination;
     private JTextField txtDeliveryDate;
+    private JButton viewNotificationsButton;
 
     private ShipmentController shipmentController;
     private CityController cityController = new CityController();
@@ -135,6 +136,14 @@ public class CustomerView extends JFrame {
         tableCustomerShipments.setModel(modelShipments);
 
         loadShipments(); //Loading shipments into the table on page load
+
+        viewNotificationsButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new NotificationView(username).setVisible(true);
+                dispose();
+            }
+        });
 
         //Button Actions
         btnAddShipment.addActionListener(new ActionListener() {

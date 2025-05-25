@@ -5,25 +5,26 @@ import java.time.LocalDateTime;
 public class Notification {
     private int notificationID;
     private int userID;
+    private String type;
     private String message;
     private LocalDateTime timeStamp;
     private boolean isRead;
 
     // Full constructor
-    public Notification(int notificationID, int userID, String message, LocalDateTime timeStamp, boolean isRead) {
+    public Notification(int notificationID, int userID, String type, String message, LocalDateTime timeStamp, boolean isRead) {
         this.notificationID = notificationID;
         this.userID = userID;
+        this.type = type;
         this.message = message;
         this.timeStamp = timeStamp;
         this.isRead = isRead;
     }
 
     // Partial constructor for creating new notifications
-    public Notification(int userID, String message) {
+    public Notification(int userID, String type, String message) {
         this.userID = userID;
+        this.type = type;
         this.message = message;
-        this.timeStamp = LocalDateTime.now(); // Set timestamp to current time
-        this.isRead = false; // Default to unread
     }
 
     // Getters and Setters
@@ -41,6 +42,14 @@ public class Notification {
 
     public void setUserID(int userID) {
         this.userID = userID;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getMessage() {
