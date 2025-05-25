@@ -6,6 +6,8 @@ import models.Notification;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -37,6 +39,13 @@ public class NotificationView extends JFrame {
         shipmentController = new ShipmentController();
         int userID = shipmentController.getUserIDbyUsername(username);
         displayNotifications(userID); //display the notifications
+
+        btnrefresh.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                displayNotifications(userID);
+            }
+        });
     }
 
     public void displayNotifications(int userID) {
