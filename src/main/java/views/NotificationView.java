@@ -18,6 +18,7 @@ public class NotificationView extends JFrame {
     private JButton btndelete;
     private JLabel lblnotify;
     private JPanel notificationBackPanel;
+    private JTextArea txtAreaMessage;
 
     DefaultTableModel notificationTableModel;
     private NotificationController notificationController; // Declare as instance variable
@@ -30,10 +31,27 @@ public class NotificationView extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         //Set table columns
-        String[] notificationTableColumns = {"Type", "Content", "Generated"};
+        String[] notificationTableColumns = {"ID", "Type", "Content", "Generated"};
         Object[][] notificationTableData = {};
         notificationTableModel = new DefaultTableModel(notificationTableData, notificationTableColumns);
         notifyTbl.setModel(notificationTableModel);
+
+        //Hide notificationID column
+        notifyTbl.getColumnModel().getColumn(0).setMinWidth(0);
+        notifyTbl.getColumnModel().getColumn(0).setMaxWidth(0);
+        notifyTbl.getColumnModel().getColumn(0).setWidth(0);
+
+        //Display notification content in the text area
+        notifyTbl.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                int selectedRow = notifyTbl.getSelectedRow();
+                if (selectedRow != -1) {
+                    String content = notificationTableModel.getValueAt(selectedRow, 2).toString();
+                    txtAreaMessage.setText(content);
+                }
+            }
+        });
+        txtAreaMessage.setEditable(false);
 
         //Finding userID by Username
         shipmentController = new ShipmentController();
@@ -46,6 +64,7 @@ public class NotificationView extends JFrame {
                 displayNotifications(userID);
             }
         });
+
         btndelete.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -102,6 +121,7 @@ public class NotificationView extends JFrame {
 
         for (Notification notification : notifications) {
             notificationTableModel.addRow(new Object[]{
+                    notification.getNotificationID(), //This column will be hidden
                     notification.getType(),
                     notification.getMessage(),
                     notification.getTimeStamp().format(formatter)

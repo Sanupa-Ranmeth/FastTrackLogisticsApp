@@ -86,7 +86,7 @@ public class NotificationDAO {
         }
     }
     public boolean markAsRead(int notificationID){
-        String sql = "UPDATE Notification SET isRead = true WHERE notificationID = ?";
+        String sql = "UPDATE Notification SET isRead = 1 WHERE notificationID = ?";
         try(Connection conn = DatabaseConnection.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)){
             stmt.setInt(1,notificationID);
