@@ -46,4 +46,10 @@ public class NotificationController {
     public List<Notification> getUserNotifications(int userID) {
         return notificationDAO.getAllNotifications(userID);
     }
+    public boolean markNotificationAsRead(int notificationID) {
+        return notificationDAO.markAsRead(notificationID);
+    }
+    public boolean deleteNotification(int notificationID){
+        return notificationDAO.deleteNofitication(notificationID);
+    }
 }

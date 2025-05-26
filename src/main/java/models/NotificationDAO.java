@@ -2,6 +2,7 @@ package models;
 
 import utilities.DatabaseConnection;
 
+import javax.xml.crypto.Data;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,6 +70,30 @@ public class NotificationDAO {
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             System.out.println("An error occurred while saving notification: " + e.getMessage());
+            return false;
+        }
+    }
+    public boolean deleteNofitication(int notificationID){
+        String sql = "DELETE FROM Notification WHERE notificationID = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, notificationID);
+            return stmt.executeUpdate() > 0;
+        }
+        catch (SQLException e) {
+            System.out.println("Failed to Delete Notification: " + e.getMessage());
+            return false;
+        }
+    }
+    public boolean markAsRead(int notificationID){
+        String sql = "UPDATE Notification SET isRead = true WHERE notificationID = ?";
+        try(Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)){
+            stmt.setInt(1,notificationID);
+            return stmt.executeUpdate() > 0;
+        }
+        catch (SQLException e) {
+            System.out.println("Failed to Mark as Read: " + e.getMessage());
             return false;
         }
     }
