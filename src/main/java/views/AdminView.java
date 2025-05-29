@@ -70,6 +70,18 @@ public class AdminView extends JFrame {
     private JTextField txtReceiver;
     private JTextField txtShipmentID;
     private JButton addShipmentButton;
+    private JComboBox comboBox1;
+    private JLabel lblTotalShipments;
+    private JLabel lblCancelledShipments;
+    private JLabel lblOnTimeDeliveryRate;
+    private JLabel lblAverageDeliveryDelay;
+    private JLabel lblLongestDelay;
+    private JLabel lblShortestDelay;
+    private JLabel lblSuccessfulDeliveryRate;
+    private JLabel lblFailedDeliveryRate;
+    private JLabel lblAverageDeliveryRating;
+    private JLabel lblDeliveryCount;
+    private JLabel lblTopRatedDriver;
 
     private DeliveryPersonnelController driverController;
     private TimeSlotController timeSlotController = new TimeSlotController();
