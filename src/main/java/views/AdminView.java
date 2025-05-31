@@ -793,5 +793,6 @@ public class AdminView extends JFrame {
                 }
             }
         });
+
     }
 }
