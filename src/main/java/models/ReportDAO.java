@@ -51,7 +51,7 @@ public class ReportDAO {
                 "WHERE d.isDelayed = 0 AND YEAR(s.created_at) = ? AND MONTH(s.created_at) = ?";
 
         try (PreparedStatement totalStmt = conn.prepareStatement(totalSQL);
-             PreparedStatement onTimeStmt = conn.prepareStatement(onTimeSQL)) {
+        PreparedStatement onTimeStmt = conn.prepareStatement(onTimeSQL)) {
             totalStmt.setInt(1, year);
             totalStmt.setInt(2, month);
             onTimeStmt.setInt(1, year);
@@ -99,7 +99,7 @@ public class ReportDAO {
         String sqlTotal = "SELECT COUNT(*) FROM Shipment WHERE Status IN ('Delivered', 'Failed Delivery') AND YEAR(created_at) = ? AND MONTH(created_at) = ?";
 
         try (PreparedStatement stmtDelivered = conn.prepareStatement(sqlDelivered);
-             PreparedStatement stmtTotal = conn.prepareStatement(sqlTotal)) {
+        PreparedStatement stmtTotal = conn.prepareStatement(sqlTotal)) {
             stmtDelivered.setInt(1, year);
             stmtDelivered.setInt(2, month);
             stmtTotal.setInt(1, year);
@@ -174,6 +174,3 @@ public class ReportDAO {
         }
     }
 }
-
-
-
