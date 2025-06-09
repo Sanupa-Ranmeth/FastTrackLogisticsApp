@@ -50,6 +50,6 @@ public class NotificationController {
         return notificationDAO.markAsRead(notificationID);
     }
     public boolean deleteNotification(int notificationID){
-        return notificationDAO.deleteNofitication(notificationID);
+        return notificationDAO.deleteNotification(notificationID);
     }
 }

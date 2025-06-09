@@ -2,7 +2,6 @@ package models;
 
 import utilities.DatabaseConnection;
 
-import javax.xml.crypto.Data;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +57,6 @@ public class NotificationDAO {
 
      */
 
-
     public boolean saveNotification(Notification notification, int userID) {
         String sql = "INSERT INTO Notification (UserID, Type, Content) VALUES (?,?,?)";
 
@@ -73,7 +71,7 @@ public class NotificationDAO {
             return false;
         }
     }
-    public boolean deleteNofitication(int notificationID){
+    public boolean deleteNotification(int notificationID){
         String sql = "DELETE FROM Notification WHERE notificationID = ?";
         try (Connection conn = DatabaseConnection.getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql)) {
