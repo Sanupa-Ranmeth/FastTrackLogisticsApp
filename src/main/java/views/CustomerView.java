@@ -15,8 +15,6 @@ import java.awt.event.ActionListener;
 import java.sql.Date;
 import java.util.List;
 
-import static jdk.internal.org.jline.utils.AttributedStringBuilder.append;
-
 public class CustomerView extends JFrame {
 
     private JLabel lblWelcome;
