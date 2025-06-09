@@ -719,8 +719,11 @@ public class AdminView extends JFrame {
                 boolean defaultIsAvailable = true;
 
 
+
                 if (driverController.addDriver(username, password, email, driverName, schedule, routeID , defaultIsAvailable)) {
                     JOptionPane.showMessageDialog(AdminBackPanel, "Driver added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+                    populateDriverDropdown();
                     refreshDriverTable();
                     clearDriverForm();
                 }
@@ -738,8 +741,11 @@ public class AdminView extends JFrame {
                     if (confirm == JOptionPane.YES_OPTION) {
                         if (driverController.deleteDriver(driverID)) {
                             JOptionPane.showMessageDialog(AdminBackPanel, "Driver deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+                            populateDriverDropdown();
                             refreshDriverTable();
                             clearDriverForm();
+
                         } else {
                             JOptionPane.showMessageDialog(AdminBackPanel, "Failed to delete driver!", "Error", JOptionPane.ERROR_MESSAGE);
                         }
@@ -767,8 +773,11 @@ public class AdminView extends JFrame {
 
                     if (driverController.updateDrivers(driverID, username, password, email, driverName, schedule, routeID, defaultIsAvailable)) {
                         JOptionPane.showMessageDialog(AdminBackPanel, "Driver updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+                        populateDriverDropdown();
                         refreshDriverTable();
                         clearDriverForm();
+
                     } else {
                         JOptionPane.showMessageDialog(AdminBackPanel, "Failed to update driver!", "Error", JOptionPane.ERROR_MESSAGE);
                     }
@@ -847,6 +856,8 @@ public class AdminView extends JFrame {
     //Populate DriverDropDown
     public void  populateDriverDropdown() {
 
+        //should always remove the existing data and add them again, or it won't work real time( will only work after you open it again)
+        dropdownDriver.removeAllItems();
 
         //Fetch Driver Names
         List<String> driverNames = driverController.getAllDriverNames();
@@ -854,6 +865,9 @@ public class AdminView extends JFrame {
         //Addding driver names to the drop down
         for(String name: driverNames) {
             dropdownDriver.addItem(name); // add each driver name as an item
+
+
+
         }
     }
 }
