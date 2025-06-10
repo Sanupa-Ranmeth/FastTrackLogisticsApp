@@ -1,10 +1,7 @@
 package views;
 
 import controllers.*;
-import models.City;
-import models.Delivery;
-import models.Shipment;
-import models.TimeSlot;
+import models.*;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -13,6 +10,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
+import java.sql.SQLException;
 import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -76,6 +74,18 @@ public class AdminView extends JFrame {
     private JTextField txtReceiver;
     private JTextField txtShipmentID;
     private JButton addShipmentButton;
+    private JComboBox StarDropdown;
+    private JLabel lblTotalShipments;
+    private JLabel lblCancelledShipments;
+    private JLabel lblOnTimeDeliveryRate;
+    private JLabel lblAverageDeliveryDelay;
+    private JLabel lblLongestDelay;
+    private JLabel lblShortestDelay;
+    private JLabel lblSuccessfulDeliveryRate;
+    private JLabel lblFailedDeliveryRate;
+    private JLabel lblAverageDeliveryRating;
+    private JLabel lblDeliveryCount;
+    private JLabel lblTopRatedDriver;
 
     private DeliveryPersonnelController driverController;
     private TimeSlotController timeSlotController = new TimeSlotController();
@@ -83,6 +93,8 @@ public class AdminView extends JFrame {
     private ShipmentController shipmentController = new ShipmentController();
     private RouteController routeController = new RouteController();
     private CityController cityController;
+    private ReportDAO reportDAO = new ReportDAO();
+    private ReportController reportController = new ReportController(reportDAO);
     private NotificationController notificationController;
 
 
@@ -322,6 +334,66 @@ public class AdminView extends JFrame {
         txtRouteID.setText("");
     }
 
+
+    //Report Section Methods
+
+    public void setReportController(ReportController reportController) {
+        this.reportController = reportController;
+    }
+
+    private void generateReport() {
+        try {
+            int year = Integer.parseInt((String) dropdownYear.getSelectedItem());
+            int month = dropdownMonth.getSelectedIndex() + 1;
+
+            //Shipment Details
+            int total = reportController.getTotalShipments(year, month);
+            int cancelledShipments = reportController.getCancelledShipments(year, month);
+
+            //Delivery performance
+            double onTime = reportController.getOnTimeRate(year, month);
+            double avgDelay = reportController.getAvgDelay(year, month);
+            int maxDelay = reportController.getMaxDelay(year, month);
+            int minDelay = reportController.getMinDelay(year, month);
+            double successRate = reportController.getSuccessRate(year, month);
+            double failureRate = reportController.getFailureRate(year, month);
+
+            //Customer satisfaction
+            double avgRating = reportController.getAvgRating(year, month);
+            String topDriver = reportController.getTopDriver(year, month);
+
+            //Updating labels
+            lblTotalShipments.setText(String.valueOf(total));
+            lblCancelledShipments.setText(String.valueOf(cancelledShipments));
+            lblOnTimeDeliveryRate.setText(String.format("%.2f%%", onTime));
+            lblAverageDeliveryDelay.setText(String.format("%.1f mins", avgDelay));
+            lblLongestDelay.setText(maxDelay + " mins");
+            lblShortestDelay.setText(minDelay + " mins");
+            lblSuccessfulDeliveryRate.setText(String.format("%.2f%%", successRate));
+            lblFailedDeliveryRate.setText(String.format("%.2f%%", failureRate));
+            lblAverageDeliveryRating.setText(String.format("%.2f Stars", avgRating));
+            lblTopRatedDriver.setText(topDriver);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(AdminBackPanel, "Something Went Wrong!", "Report Error", JOptionPane.ERROR_MESSAGE);
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void clearReportLabels() {
+        lblTotalShipments.setText("-");
+        lblCancelledShipments.setText("-");
+        lblOnTimeDeliveryRate.setText("-");
+        lblAverageDeliveryDelay.setText("-");
+        lblLongestDelay.setText("-");
+        lblShortestDelay.setText("-");
+        lblSuccessfulDeliveryRate.setText("-");
+        lblFailedDeliveryRate.setText("-");
+        lblAverageDeliveryRating.setText("-");
+        lblDeliveryCount.setText("-");
+        lblTopRatedDriver.setText("-");
+    }
+
     //------------------ADMIN VIEW--------------------------------------------------------------------------------------------------------------------
 
     public AdminView(String username) {
@@ -334,6 +406,7 @@ public class AdminView extends JFrame {
         deliveryController = new DeliveryController();
         cityController = new CityController();
         notificationController = new NotificationController();
+        setReportController(reportController);
         //------------------------------------------------------//
 
         //Shipment table model
@@ -377,7 +450,7 @@ public class AdminView extends JFrame {
         initiateTimeSlotDropdown();
         initiateDestinationDropdown();
 
-                                //--------- SHIPMENT TABLE BUTTON ACTIONS -----------
+        //--------- SHIPMENT TABLE BUTTON ACTIONS -----------
         //dropdown filter
         dropdownFilter.addActionListener(new ActionListener() {
             @Override
@@ -668,7 +741,7 @@ public class AdminView extends JFrame {
 
 
 
-                                //--------- TIMESLOT TABLE BUTTON ACTIONS -----------
+        //--------- TIMESLOT TABLE BUTTON ACTIONS -----------
         addSlotButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -812,7 +885,7 @@ public class AdminView extends JFrame {
             }
         });
 
-
+        //Populate form
         tableDrivers.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
@@ -867,6 +940,28 @@ public class AdminView extends JFrame {
                 dropdownDriver.removeAllItems();
                 populateDriverDropdown();
 
+            }
+        });
+
+        //REPORT SECTION -----------------------------------------------------------------------------------------------
+        clearReportLabels();
+
+        //Action listener for report button
+        generateReportButton.addActionListener(e -> generateReport());
+
+        //Handling star dropdown
+        StarDropdown.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    int year = Integer.parseInt((String) dropdownYear.getSelectedItem());
+                    int month = dropdownMonth.getSelectedIndex() + 1;
+                    int stars = StarDropdown.getSelectedIndex() + 1;
+                    int count = reportController.getRatingCount(stars, year, month);
+                    lblDeliveryCount.setText("Packages: " + count);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
         });
     }
