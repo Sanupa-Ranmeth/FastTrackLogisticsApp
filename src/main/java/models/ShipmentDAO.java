@@ -195,4 +195,29 @@ public class ShipmentDAO {
             return false;
         }
     }
+
+    // get shipment status method---------------
+
+    public static Object[][] getShipmentTracking(int shipmentID) {
+        List<Object[]> shipmentData = new ArrayList<>();
+        String sql = "SELECT Status,Location,EstimatedDateTime,Delay FROM AdminShipmentView WHERE shipmentID = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, shipmentID);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                shipmentData.add(new Object[] {
+                        rs.getString("Status"),
+                        rs.getString("Location"),
+                        rs.getTimestamp("EstimatedDateTime"),
+                        rs.getInt("Delay")
+                });
+            }
+        } catch (SQLException e) {
+            System.out.println("Failed to Get Shipment Status: " + e.getMessage());
+        }
+        return shipmentData.toArray(new Object[0][0]);
+    }
 }

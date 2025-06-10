@@ -291,7 +291,25 @@ public class CustomerView extends JFrame {
         btnTrackStatus.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+
                 //CODE GOES HERE
+
+                {
+                    int selectedRow = tableCustomerShipments.getSelectedRow();
+                    if (selectedRow >= 0) {
+
+                     int shipmentID = (int) ((DefaultTableModel) tableCustomerShipments.getModel()).getValueAt(selectedRow, 0);
+                        String[] labels = {"Status: ", "Current Location: ", "Delivery Estimation: ", "Delay: "};
+                        StringBuilder displayText = new StringBuilder();
+                        for (int i = 0; i < labels.length; i++) {
+                            displayText.append(labels[i]).append(ShipmentDAO.getShipmentTracking(shipmentID)[0][i]).append("\n");
+                        }
+                        JOptionPane.showMessageDialog(null,displayText.toString(), "Track Status", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                    else {
+                        JOptionPane.showMessageDialog(customerBackPanel, "Select a shipment to Track Status", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
             }
         });
     }
