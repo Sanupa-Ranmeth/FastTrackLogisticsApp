@@ -86,7 +86,7 @@ public class AdminView extends JFrame {
     private NotificationController notificationController;
 
 
-
+    private int originalRouteID; //This will be used for storing the original RouteID to detect if the route is updated in updateDriverBtn and generate route notification
 
 
     //Shipment Table Methods
@@ -399,6 +399,8 @@ public class AdminView extends JFrame {
                 txtAreaDeliveryAddress.setText(model.getValueAt(selectedRow, 4).toString());
                 checkboxUrgent.setSelected(model.getValueAt(selectedRow, 6) != null ? (Boolean) model.getValueAt(selectedRow, 6) : false);
                 spinnerDelay.setValue(model.getValueAt(selectedRow, 13));
+
+                originalRouteID = (int) tableDrivers.getValueAt(selectedRow, 3);
 
                 //Populating timeslot and destination dropdowns
                 populateDestinationDropdown(routeController.getRouteIDFromCityName((String) model.getValueAt(selectedRow, 3)));
@@ -782,9 +784,14 @@ public class AdminView extends JFrame {
                     int routeID = Integer.parseInt(txtRouteID.getText());
                     boolean defaultIsAvailable = true;
 
+                    boolean routeChanged = (routeID != originalRouteID);
 
                     if (driverController.updateDrivers(driverID, username, password, email, driverName, schedule, routeID, defaultIsAvailable)) {
                         JOptionPane.showMessageDialog(AdminBackPanel, "Driver updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+                        if (routeChanged) {
+                            notificationController.generateRouteChangeNotification(driverID, routeID);
+                        }
 
                         populateDriverDropdown();
                         refreshDriverTable();

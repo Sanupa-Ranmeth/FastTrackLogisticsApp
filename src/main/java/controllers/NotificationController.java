@@ -67,9 +67,11 @@ public class NotificationController {
         return true;
     }
 
-    public boolean generateRouteChangeNotification(int userID, int routeString) {
+    public boolean generateRouteChangeNotification(int userID, int routeID) {
+        //Enhancement: Write logic here to convert the routeID to the routeString (Amabalangoda - Colombo)
+
         String type = "Route Change";
-        String message = "Your route has been changed to " + routeString + ".";
+        String message = "Your route has been changed to " + routeID + ".";
         Notification notification = new Notification(userID, type, message);
         notificationDAO.saveNotification(notification, userID);
         return true;
