@@ -417,12 +417,14 @@ public class AdminView extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 int shipmentID = Integer.parseInt(txtShipmentID.getText());
-                int driverID = Integer.parseInt(dropdownDriver.getSelectedItem().toString());
+                int driverID = shipmentController.getUserIDbyUsername(dropdownDriver.getSelectedItem().toString());
                 int userID = Integer.parseInt(txtCustomer.getText());
+                String packageStatus = checkboxUrgent.isSelected() ? "Urgent" : "Normal";
 
                 if (deliveryController.approveDelivery(shipmentID, driverID)) {
                     JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Approved Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                     notificationController.generateApproveDeliveryNotification(shipmentID, userID); //Send approve delivery notification
+                    notificationController.generateDriverAssignmentNotification(shipmentID, driverID, packageStatus);
                     clearShipmentDetails();
                     loadShipments();
                 }

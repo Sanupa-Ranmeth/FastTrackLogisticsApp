@@ -18,6 +18,7 @@ public class DriverView extends JFrame {
     private JButton updateEstimationButton;
     private JButton viewHistoryButton;
     private JButton isAvailableButton;
+    private JButton viewNotificationsButton;
 
     private DeliveryPersonnelController driverController = new DeliveryPersonnelController();
 
@@ -31,10 +32,18 @@ public class DriverView extends JFrame {
         int userId = driverController.getUserIDbyUsername(username);
         System.out.println("User ID: " + userId);
 
+        //View notification button functions
+        viewNotificationsButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new NotificationView(username).setVisible(true);
+                dispose();
+            }
+        });
 
         // Set initial state from DB
         boolean isAvailable = driverController.getAvailability(userId);
-        isAvailableButton.setText(isAvailable ? "Make UnAvailable" : "Make Available");
+        isAvailableButton.setText(isAvailable ? "Make Unavailable" : "Make Available");
 
         // Store availability state
         final boolean[] availabilityState = {isAvailable};
