@@ -12,15 +12,14 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
-import java.util.List;
 
 public class AdminView extends JFrame {
     private JPanel AdminBackPanel;
@@ -30,7 +29,11 @@ public class AdminView extends JFrame {
     private JPanel containerDetails;
     private JButton removeShipmentButton;
     private JButton updateShipmentButton;
-    private JComboBox dropdownDriver;
+    private JLabel lblDestination;
+    private JLabel lblContent;
+    private JLabel lblCustomer;
+    //private JComboBox<String> lbldriverdetails;
+    private JComboBox<String> dropdownDriver;
     private JButton approveButton;
     private JTable tableDrivers;
     private JTable tableDeliveryHistory;
@@ -45,6 +48,9 @@ public class AdminView extends JFrame {
     private JTextField txtDriverName;
     private JTextField txtSchedule;
     private JTextField txtRouteID;
+    private JButton DriverAvailabilityAdminView;
+
+
     private JButton clearFormButton;
     private JTextField txtRating;
     private JTable tableTimeSlots;
@@ -78,6 +84,10 @@ public class AdminView extends JFrame {
     private RouteController routeController = new RouteController();
     private CityController cityController;
     private NotificationController notificationController;
+
+
+
+
 
     //Shipment Table Methods
     private void loadShipments() {
@@ -302,7 +312,7 @@ public class AdminView extends JFrame {
     //Driver Table Methods
     private void refreshDriverTable() {
         DefaultTableModel model = (DefaultTableModel) tableDrivers.getModel();
-        model.setDataVector(driverController.getAllDrivers(), new String[] { "ID", "Name", "Schedule", "Route", "Average Rating" });
+        model.setDataVector(driverController.getAllDrivers(), new String[] { "ID", "Name", "Schedule", "Route", "Average Rating" , "IsAvailable" });
     }
 
     private void clearDriverForm() {
@@ -340,11 +350,13 @@ public class AdminView extends JFrame {
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
+
+
         };
         tableTimeSlots.setModel(modelTimeSlots);
 
         //Driver table model
-        String[] DriverColumns = {"ID", "Name", "Schedule", "Route", "Average Rating"};
+        String[] DriverColumns = {"ID", "Name", "Schedule", "Route", "Average Rating", "IsAvailable"};
         Object[][] DriverData = {}; //to be dynamically generated
 
         DefaultTableModel modelDrivers = new DefaultTableModel(DriverData, DriverColumns);
@@ -700,6 +712,9 @@ public class AdminView extends JFrame {
 
         refreshDriverTable();
 
+        // Populate the driver dropdown with names
+        populateDriverDropdown();
+
         //Button actions
         addDriverButton.addActionListener(new ActionListener() {
             @Override
@@ -711,9 +726,14 @@ public class AdminView extends JFrame {
                 String driverName = txtDriverName.getText();
                 String schedule = txtSchedule.getText();
                 int routeID = Integer.parseInt(txtRouteID.getText());
+                boolean defaultIsAvailable = true;
 
-                if (driverController.addDriver(username, password, email, driverName, schedule, routeID)) {
+
+
+                if (driverController.addDriver(username, password, email, driverName, schedule, routeID , defaultIsAvailable)) {
                     JOptionPane.showMessageDialog(AdminBackPanel, "Driver added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+                    populateDriverDropdown();
                     refreshDriverTable();
                     clearDriverForm();
                 }
@@ -731,8 +751,11 @@ public class AdminView extends JFrame {
                     if (confirm == JOptionPane.YES_OPTION) {
                         if (driverController.deleteDriver(driverID)) {
                             JOptionPane.showMessageDialog(AdminBackPanel, "Driver deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+                            populateDriverDropdown();
                             refreshDriverTable();
                             clearDriverForm();
+
                         } else {
                             JOptionPane.showMessageDialog(AdminBackPanel, "Failed to delete driver!", "Error", JOptionPane.ERROR_MESSAGE);
                         }
@@ -755,11 +778,16 @@ public class AdminView extends JFrame {
                     String driverName = txtDriverName.getText();
                     String schedule = txtSchedule.getText();
                     int routeID = Integer.parseInt(txtRouteID.getText());
+                    boolean defaultIsAvailable = true;
 
-                    if (driverController.updateDrivers(driverID, username, password, email, driverName, schedule, routeID)) {
+
+                    if (driverController.updateDrivers(driverID, username, password, email, driverName, schedule, routeID, defaultIsAvailable)) {
                         JOptionPane.showMessageDialog(AdminBackPanel, "Driver updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+                        populateDriverDropdown();
                         refreshDriverTable();
                         clearDriverForm();
+
                     } else {
                         JOptionPane.showMessageDialog(AdminBackPanel, "Failed to update driver!", "Error", JOptionPane.ERROR_MESSAGE);
                     }
@@ -771,12 +799,11 @@ public class AdminView extends JFrame {
 
         clearFormButton.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                clearDriverForm();
+            public void actionPerformed(ActionEvent e) { clearDriverForm();
             }
         });
 
-        //Populate form
+
         tableDrivers.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
@@ -786,10 +813,71 @@ public class AdminView extends JFrame {
                     txtDriverName.setText(tableDrivers.getValueAt(selectedRow, 1).toString());
                     txtSchedule.setText(tableDrivers.getValueAt(selectedRow, 2).toString());
                     txtRouteID.setText(tableDrivers.getValueAt(selectedRow, 3).toString());
+
+                    Object availabilityValue = tableDrivers.getValueAt(selectedRow, 5);
+                    boolean isAvailable = false;
+
+                    if (availabilityValue instanceof Integer) {
+                        isAvailable = ((Boolean) availabilityValue);
+                    } else if (availabilityValue instanceof Integer) {
+                        isAvailable = ((Integer)availabilityValue) == 1;
+                    }  else if (availabilityValue instanceof String) {
+                        isAvailable = availabilityValue.toString().equalsIgnoreCase("available") || availabilityValue.equals("1");
+                    }
+
+                    DriverAvailabilityAdminView.setText(isAvailable ? "Mark as Unavailable" : "Mark as Available");
+                    System.out.println("Availability raw value: " + availabilityValue); // Debug
+                    System.out.println("Available value: " + isAvailable);
+
+
+
                 } else {
                     clearDriverForm();
                 }
             }
         });
+
+
+        DriverAvailabilityAdminView.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                int driverID = (Integer) tableDrivers.getValueAt(tableDrivers.getSelectedRow(), 0);
+                boolean availability = DeliveryPersonnelController.getAvailability(driverID);
+
+                boolean availabilityState = !availability;
+                int availabilityValue = availabilityState ? 1: 0 ;
+
+                DriverAvailabilityAdminView.setText(availabilityState ? "Mark as Unavailable" : "Mark as Available");
+                DeliveryPersonnelController.updateAvailability(driverID, availabilityValue);
+
+                String message = availabilityState ? "Driver is now marked as Available." : "Driver is now marked as UNAVAILABLE.";
+                JOptionPane.showMessageDialog(null, message);
+
+                refreshDriverTable();
+                dropdownDriver.removeAllItems();
+                populateDriverDropdown();
+
+            }
+        });
+    }
+
+
+    //Populate DriverDropDown
+    public void  populateDriverDropdown() {
+
+        //should always remove the existing data and add them again, or it won't work real time( will only work after you open it again)
+        dropdownDriver.removeAllItems();
+
+        //Fetch Driver Names
+        List<String> driverNames = driverController.getAllDriverNames();
+
+        //Addding driver names to the drop down
+        for(String name: driverNames) {
+            dropdownDriver.addItem(name); // add each driver name as an item
+
+
+
+        }
     }
 }
