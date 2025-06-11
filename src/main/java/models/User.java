@@ -4,7 +4,7 @@ public class User {
     private String username;
     private String password;
     private String email;
-    private String role;
+    private final String role;
 
     public User(String username, String password, String email, String role) {
         if (username == null || username.trim().isEmpty()) {

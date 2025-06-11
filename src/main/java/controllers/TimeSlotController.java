@@ -7,7 +7,7 @@ import java.sql.Time;
 import java.util.List;
 
 public class TimeSlotController {
-    private TimeSlotDAO timeSlotDAO;
+    private final TimeSlotDAO timeSlotDAO;
 
     public TimeSlotController() {
         this.timeSlotDAO = new TimeSlotDAO();

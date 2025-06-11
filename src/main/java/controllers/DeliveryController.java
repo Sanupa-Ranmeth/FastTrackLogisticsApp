@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class DeliveryController {
-    private DeliveryDAO deliveryDAO = new DeliveryDAO();
-    private ShipmentController shipmentController = new ShipmentController();
+    private final DeliveryDAO deliveryDAO = new DeliveryDAO();
+    private final ShipmentController shipmentController = new ShipmentController();
 
     public boolean approveDelivery(int shipmentID, int driverID) {
         return deliveryDAO.approveShipment(shipmentID, driverID) && shipmentController.approveShipment(shipmentID);

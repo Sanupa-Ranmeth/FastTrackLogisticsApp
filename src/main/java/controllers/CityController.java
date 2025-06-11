@@ -6,7 +6,7 @@ import models.CityDAO;
 import java.util.List;
 
 public class CityController {
-    private CityDAO cityDAO = new CityDAO();
+    private final CityDAO cityDAO = new CityDAO();
 
     //Get all cities
     public List<City> getAllCities() {

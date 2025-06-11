@@ -7,7 +7,7 @@ import models.RouteDAO;
 import java.util.List;
 
 public class RouteController {
-    private RouteDAO routeDAO = new RouteDAO();
+    private final RouteDAO routeDAO = new RouteDAO();
 
     public boolean addRoute (Route route) {
         return routeDAO.addRoute(route);

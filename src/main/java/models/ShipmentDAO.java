@@ -220,4 +220,38 @@ public class ShipmentDAO {
         }
         return shipmentData.toArray(new Object[0][0]);
     }
+
+    public boolean rateDelivery(int shipmentID, int rating) {
+        String sql = "UPDATE `Delivery` SET Rating = ? WHERE ShipmentID = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, rating);
+            stmt.setInt(2, shipmentID);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.out.println("Error rating delivery: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean hasRating(int shipmentID) {
+        String sql = "SELECT Rating FROM `Delivery` WHERE ShipmentID = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, shipmentID);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getObject("Rating") != null;
+            }
+        } catch (SQLException e) {
+            System.out.println("Error checking for rating: " + e.getMessage());
+        }
+
+        return false;
+    }
 }

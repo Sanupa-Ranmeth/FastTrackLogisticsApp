@@ -14,7 +14,7 @@ import java.util.List;
 
 
 public class DeliveryPersonnelController {
-    private DeliveryPersonnelDAO driverDAO;
+    private final DeliveryPersonnelDAO driverDAO;
 
     public DeliveryPersonnelController() {
         this.driverDAO = new DeliveryPersonnelDAO();

@@ -34,11 +34,11 @@ public class CustomerView extends JFrame {
     private JTextField txtDeliveryDate;
     private JButton viewNotificationsButton;
 
-    private ShipmentController shipmentController;
-    private CityController cityController = new CityController();
-    private TimeSlotController timeSlotController = new TimeSlotController();
-    private ShipmentDAO shipmentDAO;
-    private String username;
+    private final ShipmentController shipmentController;
+    private final CityController cityController = new CityController();
+    private final TimeSlotController timeSlotController = new TimeSlotController();
+    private final ShipmentDAO shipmentDAO;
+    private final String username;
 
     //------------------- METHODS --------------------------------------------------------------------------------------
 
@@ -52,7 +52,7 @@ public class CustomerView extends JFrame {
 
     private void loadShipments() {
         DefaultTableModel model = (DefaultTableModel) tableCustomerShipments.getModel();
-        model.setDataVector(shipmentController.getCustomerShipments(username), new String[] {"Package ID", "Sent To", "Destination", "Destination Address", "Content", "Status", "Delivery Date", "Urgent", "Time Slot"});
+        model.setDataVector(shipmentController.getCustomerShipments(username), new String[]{"Package ID", "Sent To", "Destination", "Destination Address", "Content", "Status", "Delivery Date", "Urgent", "Time Slot"});
     }
 
     private void populateDestinationDropdown() {
@@ -140,7 +140,7 @@ public class CustomerView extends JFrame {
         viewNotificationsButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new NotificationView(username).setVisible(true);
+                new NotificationView(username, "customer").setVisible(true);
                 dispose();
             }
         });
@@ -181,8 +181,7 @@ public class CustomerView extends JFrame {
                     JOptionPane.showMessageDialog(customerBackPanel, "Shipment added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                     clearForm();
                     modelShipments.setDataVector(shipmentController.getCustomerShipments(username), customerShipmentColumns);
-                }
-                else {
+                } else {
                     JOptionPane.showMessageDialog(customerBackPanel, "Failed to add shipment!", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
@@ -219,7 +218,7 @@ public class CustomerView extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 int selectedRow = tableCustomerShipments.getSelectedRow();
                 if (selectedRow >= 0) {
-                    int shipmentID = (int) ((DefaultTableModel) tableCustomerShipments.getModel()).getValueAt(selectedRow, 0);
+                    int shipmentID = (int) tableCustomerShipments.getModel().getValueAt(selectedRow, 0);
                     String receiverName = txtReceiver.getText();
                     String destinationAddress = txtAreaDestination.getText();
                     String contents = txtPkgContents.getText();
@@ -271,7 +270,7 @@ public class CustomerView extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 int selectedRow = tableCustomerShipments.getSelectedRow();
                 if (selectedRow >= 0) {
-                    int shipmentID = (int) ((DefaultTableModel) tableCustomerShipments.getModel()).getValueAt(selectedRow, 0);
+                    int shipmentID = (int) tableCustomerShipments.getModel().getValueAt(selectedRow, 0);
                     int confirm = JOptionPane.showConfirmDialog(customerBackPanel, "Are you sure you want to delete this shipment?", "Confirm Deletion", JOptionPane.YES_NO_OPTION);
 
                     if (confirm == JOptionPane.YES_OPTION) {
@@ -291,24 +290,47 @@ public class CustomerView extends JFrame {
         btnTrackStatus.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                int selectedRow = tableCustomerShipments.getSelectedRow();
+                if (selectedRow >= 0) {
+                    int shipmentID = (int) ((DefaultTableModel) tableCustomerShipments.getModel()).getValueAt(selectedRow, 0);
+                    String status = (String) ((DefaultTableModel) tableCustomerShipments.getModel()).getValueAt(selectedRow, 5);
 
-                //CODE GOES HERE
+                    // Display tracking information
+                    String[] labels = {"Status: ", "Current Location: ", "Delivery Estimation: ", "Delay: "};
+                    StringBuilder displayText = new StringBuilder();
+                    for (int i = 0; i < labels.length; i++) {
+                        displayText.append(labels[i]).append(ShipmentDAO.getShipmentTracking(shipmentID)[0][i]).append("\n");
+                    }
+                    JOptionPane.showMessageDialog(null, displayText.toString(), "Track Status", JOptionPane.INFORMATION_MESSAGE);
 
-                {
-                    int selectedRow = tableCustomerShipments.getSelectedRow();
-                    if (selectedRow >= 0) {
+                    // If status is "Delivered" and not yet rated, show rating dialog
+                    if ("Delivered".equals(status) && !shipmentController.hasShipmentBeenRated(shipmentID)) {
+                        String[] options = {"1", "2", "3", "4", "5"};
+                        int rating = JOptionPane.showOptionDialog(
+                                customerBackPanel,
+                                "Please rate your delivery experience:",
+                                "Rate Delivery",
+                                JOptionPane.DEFAULT_OPTION,
+                                JOptionPane.QUESTION_MESSAGE,
+                                null,
+                                options,
+                                options[4]  // Default to 5 stars
+                        );
 
-                     int shipmentID = (int) ((DefaultTableModel) tableCustomerShipments.getModel()).getValueAt(selectedRow, 0);
-                        String[] labels = {"Status: ", "Current Location: ", "Delivery Estimation: ", "Delay: "};
-                        StringBuilder displayText = new StringBuilder();
-                        for (int i = 0; i < labels.length; i++) {
-                            displayText.append(labels[i]).append(ShipmentDAO.getShipmentTracking(shipmentID)[0][i]).append("\n");
+                        if (rating != JOptionPane.CLOSED_OPTION) {
+                            // Convert from 0-based index to 1-5 rating
+                            int starRating = rating + 1;
+                            if (shipmentController.rateShipment(shipmentID, starRating)) {
+                                JOptionPane.showMessageDialog(customerBackPanel,
+                                        "Thank you for your rating!",
+                                        "Rating Submitted",
+                                        JOptionPane.INFORMATION_MESSAGE);
+                            }
                         }
-                        JOptionPane.showMessageDialog(null,displayText.toString(), "Track Status", JOptionPane.INFORMATION_MESSAGE);
                     }
-                    else {
-                        JOptionPane.showMessageDialog(customerBackPanel, "Select a shipment to Track Status", "Error", JOptionPane.ERROR_MESSAGE);
-                    }
+                } else {
+                    JOptionPane.showMessageDialog(customerBackPanel, "Select a shipment to Track Status",
+                            "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });

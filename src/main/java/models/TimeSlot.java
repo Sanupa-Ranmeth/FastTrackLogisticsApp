@@ -3,9 +3,9 @@ package models;
 import java.sql.Time;
 
 public class TimeSlot {
-    private int timeSlotID;
-    private Time startTime;
-    private Time endTime;
+    private final int timeSlotID;
+    private final Time startTime;
+    private final Time endTime;
 
     //Constructor
     public TimeSlot(int timeSlotID, Time startTime, Time endTime) {

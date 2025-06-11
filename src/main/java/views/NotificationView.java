@@ -19,16 +19,20 @@ public class NotificationView extends JFrame {
     private JLabel lblnotify;
     private JPanel notificationBackPanel;
     private JTextArea txtAreaMessage;
+    private JButton btnBack;
+    private final String userRole;
 
     DefaultTableModel notificationTableModel;
     private NotificationController notificationController; // Declare as instance variable
-    private ShipmentController shipmentController;
+    private final ShipmentController shipmentController;
 
-    public NotificationView(String username) {
+    public NotificationView(String username, String userRole) {
         setContentPane(notificationBackPanel);
         setTitle("Notifications");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        this.userRole = userRole;
 
         //Set table columns
         String[] notificationTableColumns = {"ID", "Type", "Content", "Generated"};
@@ -107,6 +111,19 @@ public class NotificationView extends JFrame {
                     }
                 } else {
                     JOptionPane.showMessageDialog(null, "Please select a notification to mark as read.");
+                }
+            }
+        });
+
+        btnBack.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if ("driver".equalsIgnoreCase(userRole)) {
+                    new DriverView(username).setVisible(true);
+                    dispose();
+                } else {
+                    new CustomerView(username).setVisible(true);
+                    dispose();
                 }
             }
         });

@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DeliveryPersonnelDAO {
-    private UserDAO userDAO;
+    private final UserDAO userDAO;
 
     public DeliveryPersonnelDAO() {
         this.userDAO = new UserDAO();
@@ -190,7 +190,7 @@ public class DeliveryPersonnelDAO {
                 // Establish connection, prepare statement, and execute the query
                 Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql);  // Prepare the SQL statement
-                ResultSet resultSet = stmt.executeQuery();  // Execute the query and store results
+                ResultSet resultSet = stmt.executeQuery()  // Execute the query and store results
         ) {
             // Iterate over the result set to fetch all driver names
             while (resultSet.next()) {

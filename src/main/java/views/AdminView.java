@@ -10,7 +10,6 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
-import java.sql.SQLException;
 import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -18,6 +17,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
+import java.util.Map;
 
 public class AdminView extends JFrame {
     private JPanel AdminBackPanel;
@@ -87,15 +87,15 @@ public class AdminView extends JFrame {
     private JLabel lblDeliveryCount;
     private JLabel lblTopRatedDriver;
 
-    private DeliveryPersonnelController driverController;
-    private TimeSlotController timeSlotController = new TimeSlotController();
-    private DeliveryController deliveryController;
-    private ShipmentController shipmentController = new ShipmentController();
-    private RouteController routeController = new RouteController();
-    private CityController cityController;
-    private ReportDAO reportDAO = new ReportDAO();
+    private final DeliveryPersonnelController driverController;
+    private final TimeSlotController timeSlotController = new TimeSlotController();
+    private final DeliveryController deliveryController;
+    private final ShipmentController shipmentController = new ShipmentController();
+    private final RouteController routeController = new RouteController();
+    private final CityController cityController;
+    private final ReportDAO reportDAO = new ReportDAO();
     private ReportController reportController = new ReportController(reportDAO);
-    private NotificationController notificationController;
+    private final NotificationController notificationController;
 
 
     private int originalRouteID; //This will be used for storing the original RouteID to detect if the route is updated in updateDriverBtn and generate route notification
@@ -123,6 +123,33 @@ public class AdminView extends JFrame {
         List<TimeSlot> timeSlots = timeSlotController.getAllTimeSlots();
         for (TimeSlot ts : timeSlots) {
             timeSlotModel.addRow(new Object[] { ts.getTimeSlotID(), ts.getStartTime(), ts.getEndTime() });
+        }
+    }
+
+    private void loadDriverDeliveryHistory(int driverID) {
+        try {
+            // Use the getDriverDeliveryHistory method instead
+            Object[][] deliveryHistory = deliveryController.getDriverDeliveryHistory(driverID);
+
+            // Create table model with appropriate columns
+            DefaultTableModel model = new DefaultTableModel();
+            model.addColumn("Shipment ID");
+            model.addColumn("Delivery Date");
+            model.addColumn("Destination");
+            model.addColumn("Status");
+            model.addColumn("Rating");
+
+            // Add data from the 2D array
+            for (Object[] row : deliveryHistory) {
+                model.addRow(row);
+            }
+
+            tableDeliveryHistory.setModel(model);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(AdminBackPanel,
+                    "Failed to load delivery history: " + ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
         }
     }
 
@@ -889,32 +916,35 @@ public class AdminView extends JFrame {
         tableDrivers.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
-                int selectedRow = tableDrivers.getSelectedRow();
-                if (selectedRow >= 0) {
-                    txtDriverID.setText(tableDrivers.getValueAt(selectedRow, 0).toString());
-                    txtDriverName.setText(tableDrivers.getValueAt(selectedRow, 1).toString());
-                    txtSchedule.setText(tableDrivers.getValueAt(selectedRow, 2).toString());
-                    txtRouteID.setText(tableDrivers.getValueAt(selectedRow, 3).toString());
+                if (!e.getValueIsAdjusting()) {
+                    int selectedRow = tableDrivers.getSelectedRow();
+                    if (selectedRow >= 0) {
+                        txtDriverID.setText(tableDrivers.getValueAt(selectedRow, 0).toString());
+                        txtDriverName.setText(tableDrivers.getValueAt(selectedRow, 1).toString());
+                        txtSchedule.setText(tableDrivers.getValueAt(selectedRow, 2).toString());
+                        txtRouteID.setText(tableDrivers.getValueAt(selectedRow, 3).toString());
 
-                    Object availabilityValue = tableDrivers.getValueAt(selectedRow, 5);
-                    boolean isAvailable = false;
+                        Object availabilityValue = tableDrivers.getValueAt(selectedRow, 5);
+                        boolean isAvailable = false;
 
-                    if (availabilityValue instanceof Integer) {
-                        isAvailable = ((Boolean) availabilityValue);
-                    } else if (availabilityValue instanceof Integer) {
-                        isAvailable = ((Integer)availabilityValue) == 1;
-                    }  else if (availabilityValue instanceof String) {
-                        isAvailable = availabilityValue.toString().equalsIgnoreCase("available") || availabilityValue.equals("1");
+                        if (availabilityValue instanceof Integer) {
+                            isAvailable = ((Boolean) availabilityValue);
+                        } else if (availabilityValue instanceof Integer) {
+                            isAvailable = ((Integer) availabilityValue) == 1;
+                        } else if (availabilityValue instanceof String) {
+                            isAvailable = availabilityValue.toString().equalsIgnoreCase("available") || availabilityValue.equals("1");
+                        }
+
+                        DriverAvailabilityAdminView.setText(isAvailable ? "Mark as Unavailable" : "Mark as Available");
+                        System.out.println("Availability raw value: " + availabilityValue); // Debug
+                        System.out.println("Available value: " + isAvailable);
+
+                        int driverID = (int) tableDrivers.getValueAt(selectedRow, 0);
+                        loadDriverDeliveryHistory(driverID);
+
+                    } else {
+                        clearDriverForm();
                     }
-
-                    DriverAvailabilityAdminView.setText(isAvailable ? "Mark as Unavailable" : "Mark as Available");
-                    System.out.println("Availability raw value: " + availabilityValue); // Debug
-                    System.out.println("Available value: " + isAvailable);
-
-
-
-                } else {
-                    clearDriverForm();
                 }
             }
         });

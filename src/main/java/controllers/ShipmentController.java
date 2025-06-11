@@ -3,9 +3,9 @@ package controllers;
 import models.*;
 
 public class ShipmentController {
-    private ShipmentDAO shipmentDAO;
-    private TimeSlotDAO timeSlotDAO;
-    private CityDAO cityDAO;
+    private final ShipmentDAO shipmentDAO;
+    private final TimeSlotDAO timeSlotDAO;
+    private final CityDAO cityDAO;
 
     public ShipmentController() {
         this.shipmentDAO = new ShipmentDAO();
@@ -61,8 +61,20 @@ public class ShipmentController {
 
     // get shipment status/
     public Object[][] getShipmentTracking(int shipmentID) {
-        return shipmentDAO.getShipmentTracking(shipmentID);
+        return ShipmentDAO.getShipmentTracking(shipmentID);
     }
 
+    public boolean hasShipmentBeenRated(int shipmentID) {
+        return shipmentDAO.hasRating(shipmentID);
+    }
+
+    public boolean rateShipment(int shipmentID, int rating) {
+        // Validate rating is within acceptable range
+        if (rating < 1 || rating > 5) {
+            return false;
+        }
+
+        return shipmentDAO.rateDelivery(shipmentID, rating);
+    }
 
 }

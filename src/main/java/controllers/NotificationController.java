@@ -6,7 +6,7 @@ import models.NotificationDAO;
 import java.util.List;
 
 public class NotificationController {
-    private NotificationDAO notificationDAO = new NotificationDAO();
+    private final NotificationDAO notificationDAO = new NotificationDAO();
 
     public boolean generateUpdateDeliveryNotification(int packageID, int userID, String status, String location, int delay) {
         String message = "Your package " + packageID + " is " + status +

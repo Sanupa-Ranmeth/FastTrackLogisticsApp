@@ -5,11 +5,11 @@ import java.util.Date;
 public class Shipment {
     private int shipmentID;
     private int senderID;
-    private String receiverName;
+    private final String receiverName;
     private Integer destination;
-    private String destinationAddress;
-    private String content;
-    private boolean isUrgent;
+    private final String destinationAddress;
+    private final String content;
+    private final boolean isUrgent;
     private Date deliveryDate;
     private Integer preferredTimeSlot; //Integer - can be null unlike int
     private String status;

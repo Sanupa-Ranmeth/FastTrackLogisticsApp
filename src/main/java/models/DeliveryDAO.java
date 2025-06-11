@@ -275,20 +275,25 @@ public class DeliveryDAO {
 
     public boolean updateDeliveryOperations(int shipmentID, String status, Integer location, int delay) {
         // Define allowed status values based on your database schema constraints
-        final String[] ALLOWED_STATUSES = {"Pending", "Approved", "In Transit", "Delivered", "Failed Delivery", "Delay"};
+        final String[] ALLOWED_STATUSES = {"Pending", "Approved", "In Transit", "Delivered", "Failed Delivery"};
 
-        // Validate status
-        boolean validStatus = false;
-        for (String allowedStatus : ALLOWED_STATUSES) {
-            if (allowedStatus.equals(status)) {
-                validStatus = true;
-                break;
+        // For delay reporting, we don't need to update the shipment status
+        boolean isDelayOperation = "Delay".equals(status);
+
+        // Validate status if not a delay operation
+        if (!isDelayOperation) {
+            boolean validStatus = false;
+            for (String allowedStatus : ALLOWED_STATUSES) {
+                if (allowedStatus.equals(status)) {
+                    validStatus = true;
+                    break;
+                }
             }
-        }
 
-        if (!validStatus) {
-            System.out.println("Invalid status value: " + status);
-            return false;
+            if (!validStatus) {
+                System.out.println("Invalid status value: " + status);
+                return false;
+            }
         }
 
         Connection connection = null;
@@ -299,12 +304,15 @@ public class DeliveryDAO {
             connection = DatabaseConnection.getConnection();
             connection.setAutoCommit(false);  // Start transaction
 
-            // Update Shipment status
-            String updateShipmentSQL = "UPDATE Shipment SET Status = ? WHERE ShipmentID = ?";
-            updateShipmentStmt = connection.prepareStatement(updateShipmentSQL);
-            updateShipmentStmt.setString(1, status);
-            updateShipmentStmt.setInt(2, shipmentID);
-            int shipmentUpdated = updateShipmentStmt.executeUpdate();
+            // Only update Shipment status if this is not a delay operation
+            if (!isDelayOperation) {
+                // Update Shipment status
+                String updateShipmentSQL = "UPDATE Shipment SET Status = ? WHERE ShipmentID = ?";
+                updateShipmentStmt = connection.prepareStatement(updateShipmentSQL);
+                updateShipmentStmt.setString(1, status);
+                updateShipmentStmt.setInt(2, shipmentID);
+                updateShipmentStmt.executeUpdate();
+            }
 
             // Update Delivery details
             String updateDeliverySQL = "UPDATE Delivery SET Location = ?, isDelayed = ?, Delay = ? WHERE ShipmentID = ?";
@@ -325,7 +333,7 @@ public class DeliveryDAO {
             int deliveryUpdated = updateDeliveryStmt.executeUpdate();
 
             connection.commit();  // Commit transaction
-            return (shipmentUpdated > 0 && deliveryUpdated > 0);
+            return deliveryUpdated > 0;
 
         } catch (SQLException e) {
             try {
