@@ -13,6 +13,13 @@ public class ShipmentController {
         this.cityDAO = new CityDAO();
     }
 
+    //Second constructor for testing - passing mock DAOs instead of directly calling the actual ones
+    public ShipmentController(ShipmentDAO shipmentDAO, TimeSlotDAO timeSlotDAO, CityDAO cityDAO) {
+        this.shipmentDAO = shipmentDAO;
+        this.timeSlotDAO = timeSlotDAO;
+        this.cityDAO = cityDAO;
+    }
+
     public int getUserIDbyUsername(String username) {
         return shipmentDAO.getUserIDbyUsername(username);
     }
