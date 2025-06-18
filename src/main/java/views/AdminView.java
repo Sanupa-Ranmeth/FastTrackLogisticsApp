@@ -774,6 +774,7 @@ public class AdminView extends JFrame {
                     if (timeSlotController.addTimeSlot(startTime, endTime)) {
                         JOptionPane.showMessageDialog(AdminBackPanel, "Time slot added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                         loadTimeSlots();
+                        initiateTimeSlotDropdown();
                         txtStartTime.setText("");
                         txtEndTime.setText("");
                     } else {
@@ -794,6 +795,7 @@ public class AdminView extends JFrame {
                     if (timeSlotController.removeTimeSlot(timeSlotID)) {
                         JOptionPane.showMessageDialog(AdminBackPanel, "Time slot removed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                         loadTimeSlots();
+                        initiateTimeSlotDropdown();
                     } else {
                         JOptionPane.showMessageDialog(AdminBackPanel, "Failed to remove time slot!", "Error", JOptionPane.ERROR_MESSAGE);
                     }
