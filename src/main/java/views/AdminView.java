@@ -91,6 +91,22 @@ public class AdminView extends JFrame {
     private JLabel lblTopRatedDriver;
     private DatePicker datePickerDeliveryDate;
 
+    // Route tab components
+    private JTable tableRoutes;
+    private JTable tableCities;
+    private JButton addRouteButton;
+    private JButton editRouteButton;
+    private JButton deleteRouteButton;
+    private JButton addCityButton;
+    private JButton removeCityButton;
+    private JComboBox comboStartCity;
+    private JComboBox comboEndCity;
+    private JComboBox comboCityToAdd;
+    private JTextField txtSequence;
+    private JTextField txtNewCity;
+    private JButton addCityMasterButton;
+    private JTextField txtNewCityRaw;
+
     private final DeliveryPersonnelController driverController;
     private final TimeSlotController timeSlotController = new TimeSlotController();
     private final DeliveryController deliveryController;
@@ -993,8 +1009,137 @@ public class AdminView extends JFrame {
                 }
             }
         });
-    }
 
+        // Route tab setup
+        tableRoutes.setModel(new DefaultTableModel(new Object[][]{}, new String[]{"RouteID", "Start City", "End City"}));
+        tableCities.setModel(new DefaultTableModel(new Object[][]{}, new String[]{"CityID", "City Name", "Sequence"}));
+        loadRoutes();
+        populateCityCombos();
+        tableRoutes.getSelectionModel().addListSelectionListener(e -> {
+            int row = tableRoutes.getSelectedRow();
+            if (row >= 0) {
+                int routeID = (int) tableRoutes.getValueAt(row, 0);
+                loadCities(routeID);
+            }
+        });
+        addRouteButton.addActionListener(e -> {
+            City start = (City) comboStartCity.getSelectedItem();
+            City end = (City) comboEndCity.getSelectedItem();
+            if (start == null || end == null || start.getCityID() == end.getCityID()) {
+                JOptionPane.showMessageDialog(this, "Select different start and end cities.");
+                return;
+            }
+            if (routeController.addRoute(start.getCityID(), end.getCityID())) {
+                loadRoutes();
+                populateCityCombos();
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to add route.");
+            }
+        });
+        editRouteButton.addActionListener(e -> {
+            int row = tableRoutes.getSelectedRow();
+            if (row < 0) return;
+            int routeID = (int) tableRoutes.getValueAt(row, 0);
+            City start = (City) comboStartCity.getSelectedItem();
+            City end = (City) comboEndCity.getSelectedItem();
+            if (start == null || end == null || start.getCityID() == end.getCityID()) {
+                JOptionPane.showMessageDialog(this, "Select different start and end cities.");
+                return;
+            }
+            if (routeController.updateRoute(routeID, start.getCityID(), end.getCityID())) {
+                loadRoutes();
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to update route.");
+            }
+        });
+        deleteRouteButton.addActionListener(e -> {
+            int row = tableRoutes.getSelectedRow();
+            if (row < 0) return;
+            int routeID = (int) tableRoutes.getValueAt(row, 0);
+            if (routeController.removeRoute(routeID)) {
+                loadRoutes();
+                ((DefaultTableModel) tableCities.getModel()).setRowCount(0);
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to delete route.");
+            }
+        });
+        addCityButton.addActionListener(e -> {
+            int row = tableRoutes.getSelectedRow();
+            if (row < 0) return;
+            int routeID = (int) tableRoutes.getValueAt(row, 0);
+            City city = (City) comboCityToAdd.getSelectedItem();
+            int seq;
+            try {
+                seq = Integer.parseInt(txtSequence.getText().trim());
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Enter valid sequence number.");
+                return;
+            }
+            if (routeController.addCityToRoute(routeID, city.getCityID(), seq)) {
+                loadCities(routeID);
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to add city to route.");
+            }
+        });
+        removeCityButton.addActionListener(e -> {
+            int routeRow = tableRoutes.getSelectedRow();
+            int cityRow = tableCities.getSelectedRow();
+            if (routeRow < 0 || cityRow < 0) return;
+            int routeID = (int) tableRoutes.getValueAt(routeRow, 0);
+            int cityID = (int) tableCities.getValueAt(cityRow, 0);
+            if (routeController.removeCityFromRoute(routeID, cityID)) {
+                loadCities(routeID);
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to remove city from route.");
+            }
+        });
+        addCityMasterButton.addActionListener(e -> {
+            String cityName = txtNewCity.getText().trim();
+            if (cityName.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "City name cannot be empty.");
+                return;
+            }
+            if (cityController.getCityIDByCityName(cityName) != 0) {
+                JOptionPane.showMessageDialog(this, "City already exists.");
+                return;
+            }
+            if (cityController.addCity(cityName)) {
+                JOptionPane.showMessageDialog(this, "City added successfully!");
+                txtNewCity.setText("");
+                populateCityCombos();
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to add city.");
+            }
+        });
+    }
+    private void loadRoutes() {
+        DefaultTableModel model = (DefaultTableModel) tableRoutes.getModel();
+        model.setRowCount(0);
+        List<Route> routes = routeController.getAllRoutesWithCities();
+        for (Route r : routes) {
+            model.addRow(new Object[]{r.getRouteID(), r.getStartCityName(), r.getEndCityName()});
+        }
+    }
+    private void loadCities(int routeID) {
+        DefaultTableModel model = (DefaultTableModel) tableCities.getModel();
+        model.setRowCount(0);
+        List<City> cities = routeController.getCitiesbyRoute(routeID);
+        for (City c : cities) {
+            int seq = routeController.getCitySequence(routeID, c.getCityID());
+            model.addRow(new Object[]{c.getCityID(), c.getCityName(), seq});
+        }
+    }
+    private void populateCityCombos() {
+        comboStartCity.removeAllItems();
+        comboEndCity.removeAllItems();
+        comboCityToAdd.removeAllItems();
+        List<City> cities = cityController.getAllCities();
+        for (City c : cities) {
+            comboStartCity.addItem(c);
+            comboEndCity.addItem(c);
+            comboCityToAdd.addItem(c);
+        }
+    }
 
     //Populate DriverDropDown
     public void  populateDriverDropdown() {

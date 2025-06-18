@@ -70,4 +70,17 @@ public class CityDAO {
         }
         return cityID;
     }
+
+    // Add a new city
+    public boolean addCity(String cityName) {
+        String sql = "INSERT INTO City (CityName) VALUES (?)";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, cityName);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.out.println("Failed to add city: " + e.getMessage());
+            return false;
+        }
+    }
 }

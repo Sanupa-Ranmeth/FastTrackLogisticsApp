@@ -4,6 +4,10 @@ public class Route {
     private int RouteID;
     private int StartCityID;
     private int EndCityID;
+    private String startCityName;
+    private String endCityName;
+    private double distance;
+    private String estimatedTime;
 
     //Full Constructor
     public Route(int routeID, int startCityID, int endCityID) {
@@ -41,5 +45,31 @@ public class Route {
 
     public void setEndCityID(int endCityID) {
         EndCityID = endCityID;
+    }
+
+    // Getters and setters for new fields
+    public String getStartCityName() {
+        return startCityName;
+    }
+    public void setStartCityName(String startCityName) {
+        this.startCityName = startCityName;
+    }
+    public String getEndCityName() {
+        return endCityName;
+    }
+    public void setEndCityName(String endCityName) {
+        this.endCityName = endCityName;
+    }
+    public double getDistance() {
+        return distance;
+    }
+    public void setDistance(double distance) {
+        this.distance = distance;
+    }
+    public String getEstimatedTime() {
+        return estimatedTime;
+    }
+    public void setEstimatedTime(String estimatedTime) {
+        this.estimatedTime = estimatedTime;
     }
 }

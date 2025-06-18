@@ -20,4 +20,8 @@ public class CityController {
     public int getCityIDByCityName(String cityName) {
         return cityDAO.getCityIDByCityName(cityName);
     }
+
+    public boolean addCity(String cityName) {
+        return cityDAO.addCity(cityName);
+    }
 }
