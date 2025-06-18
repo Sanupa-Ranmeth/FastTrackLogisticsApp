@@ -1,5 +1,6 @@
 package views;
 
+import com.github.lgooddatepicker.components.DatePicker;
 import controllers.*;
 import models.*;
 
@@ -9,6 +10,8 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.sql.Time;
 import java.text.ParseException;
@@ -17,7 +20,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
-import java.util.Map;
 
 public class AdminView extends JFrame {
     private JPanel AdminBackPanel;
@@ -59,7 +61,8 @@ public class AdminView extends JFrame {
     private JTextField txtEndTime;
     private JTextField txtContent;
     private JTextField txtCustomer;
-    private JTextField txtDeliveryDate;
+    //private JTextField txtDeliveryDate;
+
     private JCheckBox checkboxUrgent;
     private JTextArea txtAreaDeliveryAddress;
     private JComboBox dropdownDestination;
@@ -86,6 +89,7 @@ public class AdminView extends JFrame {
     private JLabel lblAverageDeliveryRating;
     private JLabel lblDeliveryCount;
     private JLabel lblTopRatedDriver;
+    private DatePicker datePickerDeliveryDate;
 
     private final DeliveryPersonnelController driverController;
     private final TimeSlotController timeSlotController = new TimeSlotController();
@@ -337,7 +341,7 @@ public class AdminView extends JFrame {
     private void clearShipmentDetails() {
         txtShipmentID.setText("");
         initiateDestinationDropdown();
-        txtDeliveryDate.setText("");
+        datePickerDeliveryDate.setDate(null); //clear selected date
         initiateTimeSlotDropdown();
         txtContent.setText("");
         txtCustomer.setText("");
@@ -492,15 +496,18 @@ public class AdminView extends JFrame {
             if (selectedRow >= 0) {
                 DefaultTableModel model = (DefaultTableModel) tableShipments.getModel();
                 txtShipmentID.setText(model.getValueAt(selectedRow, 0).toString());
-                txtDeliveryDate.setText(model.getValueAt(selectedRow, 8).toString());
+
+                //Update datePicker when a value is selected
+                String dateStr = model.getValueAt(selectedRow, 8).toString();
+                LocalDate date = LocalDate.parse(dateStr);
+                datePickerDeliveryDate.setDate(date);
+
                 txtContent.setText(model.getValueAt(selectedRow, 5).toString());
                 txtCustomer.setText(model.getValueAt(selectedRow, 1).toString());
                 txtReceiver.setText(model.getValueAt(selectedRow, 2).toString());
                 txtAreaDeliveryAddress.setText(model.getValueAt(selectedRow, 4).toString());
                 checkboxUrgent.setSelected(model.getValueAt(selectedRow, 6) != null ? (Boolean) model.getValueAt(selectedRow, 6) : false);
                 spinnerDelay.setValue(model.getValueAt(selectedRow, 13));
-
-                originalRouteID = (int) tableDrivers.getValueAt(selectedRow, 3);
 
                 //Populating timeslot and destination dropdowns
                 populateDestinationDropdown(routeController.getRouteIDFromCityName((String) model.getValueAt(selectedRow, 3)));
@@ -631,19 +638,14 @@ public class AdminView extends JFrame {
                 boolean isUrgent = checkboxUrgent.isSelected();
 
                 //Format date
-                String deliveryDateString = txtDeliveryDate.getText();
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                Date deliveryDate = null;
-
-                try {
-                    deliveryDate = sdf.parse(deliveryDateString);
-                } catch (ParseException ex) {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Invalid Date Format. Use YYYY-MM-DD", "Date Format Error", JOptionPane.ERROR_MESSAGE);
-                    return;
+                LocalDate selectedDate = datePickerDeliveryDate.getDate();
+                if (selectedDate == null) {
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Please select a date", "Error", JOptionPane.ERROR_MESSAGE);
                 }
+                Date deliveryDate = java.sql.Date.valueOf(selectedDate); //Convert local Date into java.sql.Date
 
                 //Validate input
-                if (destination.trim().isEmpty() || timeSlotID <= 0 || receiverName.trim().isEmpty() || address.trim().isEmpty() || deliveryDateString.trim().isEmpty() || content.trim().isEmpty() || DriverID <= 0) {
+                if (destination.trim().isEmpty() || timeSlotID <= 0 || receiverName.trim().isEmpty() || address.trim().isEmpty() || content.trim().isEmpty() || DriverID <= 0) {
                     JOptionPane.showMessageDialog(AdminBackPanel, "Please Complete All Required Fields", "Required", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
@@ -689,34 +691,29 @@ public class AdminView extends JFrame {
                 int delay = ((Number) spinnerDelay.getValue()).intValue();
                 boolean isDelayed = delay > 0;
 
-                //Format date for Shipment (Requires Date)
-                String deliveryDateString = txtDeliveryDate.getText();
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                Date deliveryDate = null; //This will be inserted into the Shipment table
-
-                try {
-                    deliveryDate = sdf.parse(deliveryDateString);
-                } catch (ParseException ex) {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Invalid Date Format. Use YYYY-MM-DD", "Date Format Error", JOptionPane.ERROR_MESSAGE);
-                    System.out.println("Parsing Delivery Date to be inserted into Shipment table failed.");
+                //Get the selected date from datapicker
+                LocalDate selectedDate = datePickerDeliveryDate.getDate();
+                if (selectedDate == null) {
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Please select a date", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
-                //Format date for Delivery (Requires LocalDateTime)
-                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-                LocalDateTime deliveryDateTime = null; //This will be inserted into the Delivery Table
+                //Convert LocalDate to java.sql.Date
+                java.sql.Date deliveryDate = java.sql.Date.valueOf(selectedDate);
 
-                try {
-                    String deliveryDateTimeString = deliveryDateString + " " + tableShipments.getModel().getValueAt(selectedRow, 7).toString();
-                    deliveryDateTime = LocalDateTime.parse(deliveryDateTimeString, dtf);
-                } catch (DateTimeParseException ex) {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Invalid Date Format: Use YYYY-MM-DD", "Date Format Error", JOptionPane.ERROR_MESSAGE);
-                    System.out.println("Parsing Delivery Date to be inserted into Delivery table failed.");
+                //Get selected timeSlot
+                TimeSlot selectedTimeSlot = (TimeSlot) dropdownTimeSlot.getSelectedItem();
+                if (selectedTimeSlot == null) {
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Please select a time slot!", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
+
+                //Combine date and time to create LocalDateTime
+                LocalTime startTime = selectedTimeSlot.getStartTime().toLocalTime();
+                LocalDateTime deliveryDateTime = LocalDateTime.of(selectedDate, startTime);
 
                 //Validate input
-                if (shipmentID <= 0 || destination.trim().isEmpty() || timeSlotID <= 0 || CustomerID <= 0 || receiverName.trim().isEmpty() || address.trim().isEmpty() || deliveryDateString.trim().isEmpty() || content.trim().isEmpty() || DriverID <= 0) {
+                if (shipmentID <= 0 || destination.trim().isEmpty() || timeSlotID <= 0 || CustomerID <= 0 || receiverName.trim().isEmpty() || address.trim().isEmpty() || content.trim().isEmpty() || DriverID <= 0) {
                     JOptionPane.showMessageDialog(AdminBackPanel, "Please Complete All Required Fields", "Required", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
@@ -923,6 +920,8 @@ public class AdminView extends JFrame {
                         txtDriverName.setText(tableDrivers.getValueAt(selectedRow, 1).toString());
                         txtSchedule.setText(tableDrivers.getValueAt(selectedRow, 2).toString());
                         txtRouteID.setText(tableDrivers.getValueAt(selectedRow, 3).toString());
+
+                        originalRouteID = (int) tableDrivers.getValueAt(selectedRow, 3);
 
                         Object availabilityValue = tableDrivers.getValueAt(selectedRow, 5);
                         boolean isAvailable = false;
