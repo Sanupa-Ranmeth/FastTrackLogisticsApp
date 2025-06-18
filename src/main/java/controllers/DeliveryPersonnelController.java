@@ -125,6 +125,28 @@ public class DeliveryPersonnelController {
         return driverDAO.getUserIDbyUsername(username);
     }
 
+    public int getDriverIDbyDriverName(String driverName) {
 
+        int driverID = -1;
+
+        String sql = "SELECT DriverID FROM Driver WHERE DriverName = ?";
+
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);){
+            stmt.setString(1, driverName);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    driverID = rs.getInt("DriverID");
+                }
+            }
+        }
+        catch (SQLException e) {
+            System.out.println("Failed to get Driver ID by name: " + e.getMessage());
+        }
+
+        return driverID;
+    }
 
 }

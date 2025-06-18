@@ -30,7 +30,7 @@ public class AdminView extends JFrame {
     private JLabel lblDestination;
     private JLabel lblContent;
     private JLabel lblCustomer;
-    //private JComboBox<String> lbldriverdetails;
+    // private JComboBox<String> lbldriverdetails;
     private JComboBox<String> dropdownDriver;
     private JButton approveButton;
     private JTable tableDrivers;
@@ -48,27 +48,25 @@ public class AdminView extends JFrame {
     private JTextField txtRouteID;
     private JButton DriverAvailabilityAdminView;
 
-
     private JButton clearFormButton;
     private JTextField txtRating;
     private JTable tableTimeSlots;
     private JButton addSlotButton;
     private JButton removeSlotButton;
-    private JPanel containerTimeSlotDetails;
     private JTextField txtStartTime;
     private JTextField txtEndTime;
     private JTextField txtContent;
     private JTextField txtCustomer;
-    //private JTextField txtDeliveryDate;
+    // private JTextField txtDeliveryDate;
 
     private JCheckBox checkboxUrgent;
     private JTextArea txtAreaDeliveryAddress;
-    private JComboBox dropdownDestination;
-    private JComboBox dropdownTimeSlot;
-    private JComboBox dropdownFilter;
+    private JComboBox<City> dropdownDestination;
+    private JComboBox<TimeSlot> dropdownTimeSlot;
+    private JComboBox<String> dropdownFilter;
     private JButton disapproveButton;
-    private JComboBox dropdownStatus;
-    private JComboBox dropdownLocation;
+    private JComboBox<String> dropdownStatus;
+    private JComboBox<City> dropdownLocation;
     private JSpinner spinnerDelay;
     private JButton setDeliveryEstimationButton;
     private JButton updateDeliveryButton;
@@ -93,17 +91,13 @@ public class AdminView extends JFrame {
     private JTable tableRoutes;
     private JTable tableCities;
     private JButton addRouteButton;
-    private JButton editRouteButton;
-    private JButton deleteRouteButton;
     private JButton addCityButton;
-    private JButton removeCityButton;
-    private JComboBox comboStartCity;
-    private JComboBox comboEndCity;
-    private JComboBox comboCityToAdd;
-    private JTextField txtSequence;
-    private JTextField txtNewCity;
+    private JComboBox<City> comboStartCity;
+    private JComboBox<City> comboEndCity;
+    private JComboBox<City> comboCityToAdd;
     private JButton addCityMasterButton;
-    private JTextField txtNewCityRaw;
+    private JComboBox<City> comboRouteCity;
+    private JPanel containerTimeSlotDetails;
 
     private final DeliveryPersonnelController driverController;
     private final TimeSlotController timeSlotController = new TimeSlotController();
@@ -115,11 +109,10 @@ public class AdminView extends JFrame {
     private ReportController reportController = new ReportController(reportDAO);
     private final NotificationController notificationController;
 
+    private int originalRouteID; // This will be used for storing the original RouteID to detect if the route is
+                                 // updated in updateDriverBtn and generate route notification
 
-    private int originalRouteID; //This will be used for storing the original RouteID to detect if the route is updated in updateDriverBtn and generate route notification
-
-
-    //Shipment Table Methods
+    // Shipment Table Methods
     private void loadShipments() {
         DefaultTableModel shipmentTableModel = (DefaultTableModel) tableShipments.getModel();
         shipmentTableModel.setRowCount(0);
@@ -171,8 +164,8 @@ public class AdminView extends JFrame {
         }
     }
 
-    //Populating dropdowns
-    //Populate TimeSlot Dropdown
+    // Populating dropdowns
+    // Populate TimeSlot Dropdown
     private void populateTimeSlotDropdown() {
         dropdownTimeSlot.removeAllItems();
         List<TimeSlot> timeSlots = timeSlotController.getAllTimeSlots();
@@ -184,9 +177,10 @@ public class AdminView extends JFrame {
             }
         }
 
-        for (int i=0; i<dropdownTimeSlot.getItemCount(); i++) {
+        for (int i = 0; i < dropdownTimeSlot.getItemCount(); i++) {
             TimeSlot timeSlot = (TimeSlot) dropdownTimeSlot.getItemAt(i);
-            if (timeSlot != null && timeSlot.toString().equals(tableShipments.getModel().getValueAt(tableShipments.getSelectedRow(), 7).toString())) {
+            if (timeSlot != null && timeSlot.toString()
+                    .equals(tableShipments.getModel().getValueAt(tableShipments.getSelectedRow(), 7).toString())) {
                 dropdownTimeSlot.setSelectedIndex(i);
                 break;
             }
@@ -194,7 +188,8 @@ public class AdminView extends JFrame {
 
         dropdownTimeSlot.setRenderer(new DefaultListCellRenderer() {
             @Override
-            public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                    boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 if (value == null) {
                     setText("No TimeSlots available");
@@ -206,7 +201,7 @@ public class AdminView extends JFrame {
         });
     }
 
-    //Helper method to select timeSlot ID
+    // Helper method to select timeSlot ID
     private Integer getSelectedTimeSlotID() {
         TimeSlot selectedTimeSlot = (TimeSlot) dropdownTimeSlot.getSelectedItem();
         if (selectedTimeSlot == null) {
@@ -216,7 +211,7 @@ public class AdminView extends JFrame {
         return timeSlotID;
     }
 
-    //Load all time slots on initial load
+    // Load all time slots on initial load
     private void initiateTimeSlotDropdown() {
         dropdownTimeSlot.removeAllItems();
         List<TimeSlot> timeSlots = timeSlotController.getAllTimeSlots();
@@ -230,7 +225,8 @@ public class AdminView extends JFrame {
 
         dropdownTimeSlot.setRenderer(new DefaultListCellRenderer() {
             @Override
-            public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                    boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 if (value == null) {
                     setText("No TimeSlots available");
@@ -242,8 +238,8 @@ public class AdminView extends JFrame {
         });
     }
 
-    //Populate Destination dropdown acc. to route
-    private void populateDestinationDropdown (int RouteID) {
+    // Populate Destination dropdown acc. to route
+    private void populateDestinationDropdown(int RouteID) {
         dropdownDestination.removeAllItems();
         List<City> cities = routeController.getCitiesbyRoute(RouteID);
         if (cities.isEmpty()) {
@@ -254,10 +250,11 @@ public class AdminView extends JFrame {
             }
         }
 
-        //Select the destination form the list
-        for (int i=0; i<dropdownDestination.getItemCount(); i++) {
+        // Select the destination form the list
+        for (int i = 0; i < dropdownDestination.getItemCount(); i++) {
             City city = (City) dropdownDestination.getItemAt(i);
-            if (city != null && city.getCityName().equalsIgnoreCase(tableShipments.getModel().getValueAt(tableShipments.getSelectedRow(), 3).toString())) {
+            if (city != null && city.getCityName().equalsIgnoreCase(
+                    tableShipments.getModel().getValueAt(tableShipments.getSelectedRow(), 3).toString())) {
                 dropdownDestination.setSelectedIndex(i);
                 break;
             }
@@ -265,7 +262,8 @@ public class AdminView extends JFrame {
 
         dropdownDestination.setRenderer(new DefaultListCellRenderer() {
             @Override
-            public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                    boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 if (value == null) {
                     setText("No Desinations available");
@@ -290,7 +288,8 @@ public class AdminView extends JFrame {
 
         dropdownDestination.setRenderer(new DefaultListCellRenderer() {
             @Override
-            public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                    boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 if (value == null) {
                     setText("No Desinations available");
@@ -302,18 +301,27 @@ public class AdminView extends JFrame {
         });
     }
 
-    //populating location dropdown
-    private void populateLocationDropdown (int RouteID) {
+    // populating location dropdown
+    private void populateLocationDropdown(int RouteID) {
         dropdownLocation.removeAllItems();
 
         if (tableShipments.getModel().getValueAt(tableShipments.getSelectedRow(), 12) == null) {
-            dropdownLocation.addItem("Shipment Not Approved");
+            // dropdownLocation.addItem("Shipment Not Approved");
+            dropdownLocation.addItem(null); // Use null to indicate not approved, or consider a dummy City object
             dropdownLocation.setSelectedIndex(0);
             dropdownLocation.setRenderer(new DefaultListCellRenderer() {
                 @Override
-                public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                        boolean isSelected, boolean cellHasFocus) {
                     super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                    setText(value.toString());
+                    if (value == null) {
+                        setText("Select location");
+                    } else if (value instanceof City) {
+                        City city = (City) value;
+                        setText(city.getCityName());
+                    } else {
+                        setText(value.toString());
+                    }
                     return this;
                 }
             });
@@ -329,10 +337,11 @@ public class AdminView extends JFrame {
             }
         }
 
-        //Select the destination form the list
-        for (int i=0; i<dropdownLocation.getItemCount(); i++) {
+        // Select the destination form the list
+        for (int i = 0; i < dropdownLocation.getItemCount(); i++) {
             City city = (City) dropdownLocation.getItemAt(i);
-            if (city != null && city.getCityName().equalsIgnoreCase(tableShipments.getModel().getValueAt(tableShipments.getSelectedRow(), 12).toString())) {
+            if (city != null && city.getCityName().equalsIgnoreCase(
+                    tableShipments.getModel().getValueAt(tableShipments.getSelectedRow(), 12).toString())) {
                 dropdownLocation.setSelectedIndex(i);
                 break;
             }
@@ -340,7 +349,8 @@ public class AdminView extends JFrame {
 
         dropdownLocation.setRenderer(new DefaultListCellRenderer() {
             @Override
-            public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                    boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 if (value instanceof City) {
                     setText(value.toString());
@@ -355,7 +365,7 @@ public class AdminView extends JFrame {
     private void clearShipmentDetails() {
         txtShipmentID.setText("");
         initiateDestinationDropdown();
-        datePickerDeliveryDate.setDate(null); //clear selected date
+        datePickerDeliveryDate.setDate(null); // clear selected date
         initiateTimeSlotDropdown();
         txtContent.setText("");
         txtCustomer.setText("");
@@ -366,10 +376,11 @@ public class AdminView extends JFrame {
         spinnerDelay.setValue(0);
     }
 
-    //Driver Table Methods
+    // Driver Table Methods
     private void refreshDriverTable() {
         DefaultTableModel model = (DefaultTableModel) tableDrivers.getModel();
-        model.setDataVector(driverController.getAllDrivers(), new String[] { "ID", "Name", "Schedule", "Route", "Average Rating" , "IsAvailable" });
+        model.setDataVector(driverController.getAllDrivers(),
+                new String[] { "ID", "Name", "Schedule", "Route", "Average Rating", "IsAvailable" });
     }
 
     private void clearDriverForm() {
@@ -379,8 +390,7 @@ public class AdminView extends JFrame {
         txtRouteID.setText("");
     }
 
-
-    //Report Section Methods
+    // Report Section Methods
 
     public void setReportController(ReportController reportController) {
         this.reportController = reportController;
@@ -391,11 +401,11 @@ public class AdminView extends JFrame {
             int year = Integer.parseInt((String) dropdownYear.getSelectedItem());
             int month = dropdownMonth.getSelectedIndex() + 1;
 
-            //Shipment Details
+            // Shipment Details
             int total = reportController.getTotalShipments(year, month);
             int cancelledShipments = reportController.getCancelledShipments(year, month);
 
-            //Delivery performance
+            // Delivery performance
             double onTime = reportController.getOnTimeRate(year, month);
             double avgDelay = reportController.getAvgDelay(year, month);
             int maxDelay = reportController.getMaxDelay(year, month);
@@ -403,11 +413,11 @@ public class AdminView extends JFrame {
             double successRate = reportController.getSuccessRate(year, month);
             double failureRate = reportController.getFailureRate(year, month);
 
-            //Customer satisfaction
+            // Customer satisfaction
             double avgRating = reportController.getAvgRating(year, month);
             String topDriver = reportController.getTopDriver(year, month);
 
-            //Updating labels
+            // Updating labels
             lblTotalShipments.setText(String.valueOf(total));
             lblCancelledShipments.setText(String.valueOf(cancelledShipments));
             lblOnTimeDeliveryRate.setText(String.format("%.2f%%", onTime));
@@ -419,7 +429,8 @@ public class AdminView extends JFrame {
             lblAverageDeliveryRating.setText(String.format("%.2f Stars", avgRating));
             lblTopRatedDriver.setText(topDriver);
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(AdminBackPanel, "Something Went Wrong!", "Report Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(AdminBackPanel, "Something Went Wrong!", "Report Error",
+                    JOptionPane.ERROR_MESSAGE);
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
@@ -439,7 +450,8 @@ public class AdminView extends JFrame {
         lblTopRatedDriver.setText("-");
     }
 
-    //------------------ADMIN VIEW--------------------------------------------------------------------------------------------------------------------
+    // ------------------ADMIN
+    // VIEW--------------------------------------------------------------------------------------------------------------------
 
     public AdminView(String username) {
         setContentPane(AdminBackPanel);
@@ -447,56 +459,58 @@ public class AdminView extends JFrame {
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        //---------------Initializing Controllers----------------//
+        // ---------------Initializing Controllers----------------//
         deliveryController = new DeliveryController();
         cityController = new CityController();
         notificationController = new NotificationController();
         setReportController(reportController);
-        //------------------------------------------------------//
+        // ------------------------------------------------------//
 
-        //Shipment table model
-        String[] ShipmentColumns = {"ShipmentID", "SenderID", "Receiver Name", "Destination", "Destination Address", "Contents", "isUrgent", "Preferred Time Slot", "Delivery Date", "DriverID", "Driver Name", "Status", "Location", "Delay", "EstimatedDateTime", "ActualDeliveryTime"};
-        Object[][] ShipmentData = {}; //to be dynamically generated
+        // Shipment table model
+        String[] ShipmentColumns = { "ShipmentID", "SenderID", "Receiver Name", "Destination", "Destination Address",
+                "Contents", "isUrgent", "Preferred Time Slot", "Delivery Date", "DriverID", "Driver Name", "Status",
+                "Location", "Delay", "EstimatedDateTime", "ActualDeliveryTime" };
+        Object[][] ShipmentData = {}; // to be dynamically generated
 
         DefaultTableModel modelShipments = new DefaultTableModel(ShipmentData, ShipmentColumns);
         tableShipments.setModel(modelShipments);
 
-        //TimeSlot table model
-        String[] TimeSlotColumns = {"TimeSlotID", "StartTime", "EndTime"};
+        // TimeSlot table model
+        String[] TimeSlotColumns = { "TimeSlotID", "StartTime", "EndTime" };
         DefaultTableModel modelTimeSlots = new DefaultTableModel(TimeSlotColumns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
 
-
         };
         tableTimeSlots.setModel(modelTimeSlots);
 
-        //Driver table model
-        String[] DriverColumns = {"ID", "Name", "Schedule", "Route", "Average Rating", "IsAvailable"};
-        Object[][] DriverData = {}; //to be dynamically generated
+        // Driver table model
+        String[] DriverColumns = { "ID", "Name", "Schedule", "Route", "Average Rating", "IsAvailable" };
+        Object[][] DriverData = {}; // to be dynamically generated
 
         DefaultTableModel modelDrivers = new DefaultTableModel(DriverData, DriverColumns);
         tableDrivers.setModel(modelDrivers);
 
-        //Delivery History table model
-        String[] DeliveryHistoryColumns = {"Shipment ID", "Delivery Date", "Rating"};
-        Object[][] DeliveryHistoryData = {}; //to be dynamically generated
+        // Delivery History table model
+        String[] DeliveryHistoryColumns = { "Shipment ID", "Delivery Date", "Rating" };
+        Object[][] DeliveryHistoryData = {}; // to be dynamically generated
 
         DefaultTableModel modelDeliveryHistory = new DefaultTableModel(DeliveryHistoryData, DeliveryHistoryColumns);
         tableDeliveryHistory.setModel(modelDeliveryHistory);
 
-        //SHIPMENT SECTION----------------------------------------------------------------------------------------------
+        // SHIPMENT
+        // SECTION----------------------------------------------------------------------------------------------
 
-        //Loading initial data
+        // Loading initial data
         loadTimeSlots();
         loadShipments();
         initiateTimeSlotDropdown();
         initiateDestinationDropdown();
 
-        //--------- SHIPMENT TABLE BUTTON ACTIONS -----------
-        //dropdown filter
+        // --------- SHIPMENT TABLE BUTTON ACTIONS -----------
+        // dropdown filter
         dropdownFilter.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -504,14 +518,61 @@ public class AdminView extends JFrame {
             }
         });
 
-        //Populating form when row is selected
-        tableShipments.getSelectionModel().addListSelectionListener( event -> {
+        // Add ActionListener to Status dropdown to auto-populate Location when status
+        // is Approved
+        dropdownStatus.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String selectedStatus = (String) dropdownStatus.getSelectedItem();
+                int selectedRow = tableShipments.getSelectedRow();
+
+                if ("Disapproved".equalsIgnoreCase(selectedStatus)) {
+                    dropdownLocation.setEnabled(false);
+                    dropdownLocation.removeAllItems();
+                    dropdownLocation.addItem(new City(-1, "N/A"));
+                    dropdownLocation.setSelectedIndex(0);
+                } else {
+                    // For both "Approved" and all other statuses, enable and populate locations
+                    dropdownLocation.setEnabled(true);
+                    dropdownLocation.removeAllItems(); // Make sure to clear all items first
+
+                    if (selectedRow >= 0) {
+                        DefaultTableModel model = (DefaultTableModel) tableShipments.getModel();
+                        String destination = model.getValueAt(selectedRow, 3).toString();
+                        int routeID = routeController.getRouteIDFromCityName(destination);
+
+                        // Debug output
+                        System.out.println("Loading cities for route " + routeID + " for destination " + destination);
+
+                        // Populate location dropdown (pass the route ID)
+                        List<City> cities = routeController.getCitiesbyRoute(routeID);
+                        if (cities != null && !cities.isEmpty()) {
+                            for (City city : cities) {
+                                if (city != null) {
+                                    dropdownLocation.addItem(city);
+                                }
+                            }
+
+                            // Select the first city by default
+                            if (dropdownLocation.getItemCount() > 0) {
+                                dropdownLocation.setSelectedIndex(0);
+                            }
+                        } else {
+                            System.out.println("No cities found for route: " + routeID);
+                        }
+                    }
+                }
+            }
+        });
+
+        // Populating form when row is selected
+        tableShipments.getSelectionModel().addListSelectionListener(event -> {
             int selectedRow = tableShipments.getSelectedRow();
             if (selectedRow >= 0) {
                 DefaultTableModel model = (DefaultTableModel) tableShipments.getModel();
                 txtShipmentID.setText(model.getValueAt(selectedRow, 0).toString());
 
-                //Update datePicker when a value is selected
+                // Update datePicker when a value is selected
                 String dateStr = model.getValueAt(selectedRow, 8).toString();
                 LocalDate date = LocalDate.parse(dateStr);
                 datePickerDeliveryDate.setDate(date);
@@ -520,19 +581,22 @@ public class AdminView extends JFrame {
                 txtCustomer.setText(model.getValueAt(selectedRow, 1).toString());
                 txtReceiver.setText(model.getValueAt(selectedRow, 2).toString());
                 txtAreaDeliveryAddress.setText(model.getValueAt(selectedRow, 4).toString());
-                checkboxUrgent.setSelected(model.getValueAt(selectedRow, 6) != null ? (Boolean) model.getValueAt(selectedRow, 6) : false);
+                checkboxUrgent.setSelected(
+                        model.getValueAt(selectedRow, 6) != null ? (Boolean) model.getValueAt(selectedRow, 6) : false);
                 spinnerDelay.setValue(model.getValueAt(selectedRow, 13));
 
-                //Populating timeslot and destination dropdowns
-                populateDestinationDropdown(routeController.getRouteIDFromCityName((String) model.getValueAt(selectedRow, 3)));
+                // Populating timeslot and destination dropdowns
+                populateDestinationDropdown(
+                        routeController.getRouteIDFromCityName((String) model.getValueAt(selectedRow, 3)));
                 populateTimeSlotDropdown();
 
-                //Set the dropdown status to package status
+                // Set the dropdown status to package status
                 String status = model.getValueAt(selectedRow, 11).toString();
                 dropdownStatus.setSelectedItem(status);
 
-                //Set dropdown location
-                populateLocationDropdown(routeController.getRouteIDFromCityName((String) model.getValueAt(selectedRow, 3)));
+                // Set dropdown location
+                populateLocationDropdown(
+                        routeController.getRouteIDFromCityName((String) model.getValueAt(selectedRow, 3)));
             }
         });
 
@@ -540,13 +604,17 @@ public class AdminView extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 int shipmentID = Integer.parseInt(txtShipmentID.getText());
-                int driverID = shipmentController.getUserIDbyUsername(dropdownDriver.getSelectedItem().toString());
+                String driverName = dropdownDriver.getSelectedItem().toString();
+                int driverID = driverController.getDriverIDbyDriverName(driverName);
                 int userID = Integer.parseInt(txtCustomer.getText());
                 String packageStatus = checkboxUrgent.isSelected() ? "Urgent" : "Normal";
 
                 if (deliveryController.approveDelivery(shipmentID, driverID)) {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Approved Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                    notificationController.generateApproveDeliveryNotification(shipmentID, userID); //Send approve delivery notification
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Approved Successfully!", "Success",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    notificationController.generateApproveDeliveryNotification(shipmentID, userID); // Send approve
+                                                                                                    // delivery
+                                                                                                    // notification
                     notificationController.generateDriverAssignmentNotification(shipmentID, driverID, packageStatus);
                     clearShipmentDetails();
                     loadShipments();
@@ -557,12 +625,24 @@ public class AdminView extends JFrame {
         disapproveButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                int shipmentID = Integer.parseInt(txtShipmentID.getText());
-                int userID = Integer.parseInt(txtCustomer.getText());
+                String shipmentIDText = txtShipmentID.getText();
+                String userIDText = txtCustomer.getText();
+                if (shipmentIDText == null || shipmentIDText.trim().isEmpty() || userIDText == null
+                        || userIDText.trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Shipment ID and Customer ID cannot be empty!",
+                            "Input Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                int shipmentID = Integer.parseInt(shipmentIDText);
+                int userID = Integer.parseInt(userIDText);
 
                 if (deliveryController.disapproveDelivery(shipmentID)) {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Disapproved!", "Disapproved", JOptionPane.INFORMATION_MESSAGE);
-                    notificationController.generateDisapproveDeliveryNotification(shipmentID, userID); //Send disapprove delivery notification
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Disapproved!", "Disapproved",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    notificationController.generateDisapproveDeliveryNotification(shipmentID, userID); // Send
+                                                                                                       // disapprove
+                                                                                                       // delivery
+                                                                                                       // notification
                     clearShipmentDetails();
                     loadShipments();
                 }
@@ -591,24 +671,28 @@ public class AdminView extends JFrame {
                             JOptionPane.PLAIN_MESSAGE,
                             null,
                             null,
-                            defaultInput
-                    ).toString();
+                            defaultInput).toString();
 
                     if (userInput != null && !userInput.trim().isEmpty()) {
                         try {
-                            //Format Date
+                            // Format Date
                             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                             LocalDateTime estimation = LocalDateTime.parse(userInput.trim(), formatter);
 
                             if (deliveryController.setDeliveryEstimation(shipmentID, estimation)) {
-                                JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Estimation Successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                                notificationController.generateDeliveryEstimationNotification(shipmentID, userID, String.valueOf(estimation)); //Send delivery estimation notification
+                                JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Estimation Successful!",
+                                        "Success", JOptionPane.INFORMATION_MESSAGE);
+                                notificationController.generateDeliveryEstimationNotification(shipmentID, userID,
+                                        String.valueOf(estimation)); // Send delivery estimation notification
                             } else {
-                                JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Estimation Failed!", "Failure", JOptionPane.ERROR_MESSAGE);
+                                JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Estimation Failed!", "Failure",
+                                        JOptionPane.ERROR_MESSAGE);
                             }
                         } catch (DateTimeParseException ex) {
                             System.out.println("Invalid Date Time Format: " + ex.getMessage());
-                            JOptionPane.showMessageDialog(AdminBackPanel, "Invalid Date Time Format. Please use YYYY-MM-DD HH:MM", "Date Time Error", JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.showMessageDialog(AdminBackPanel,
+                                    "Invalid Date Time Format. Please use YYYY-MM-DD HH:MM", "Date Time Error",
+                                    JOptionPane.ERROR_MESSAGE);
                         }
                     }
 
@@ -620,25 +704,51 @@ public class AdminView extends JFrame {
         updateDeliveryButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                int shipmentID = Integer.parseInt(txtShipmentID.getText());
-                String status = dropdownStatus.getSelectedItem().toString();
-                String location = dropdownLocation.getSelectedItem().toString();
+                String shipmentIDText = txtShipmentID.getText();
+                String userIDText = txtCustomer.getText();
+                if (shipmentIDText == null || shipmentIDText.trim().isEmpty() || userIDText == null
+                        || userIDText.trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Shipment ID and Customer ID cannot be empty!",
+                            "Input Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                int shipmentID = Integer.parseInt(shipmentIDText);
+                String status = dropdownStatus.getSelectedItem() != null ? dropdownStatus.getSelectedItem().toString()
+                        : "";
+                String location = dropdownLocation.getSelectedItem() != null
+                        ? dropdownLocation.getSelectedItem().toString()
+                        : "";
                 int delay = ((Number) spinnerDelay.getValue()).intValue();
-                int userID = Integer.parseInt(txtCustomer.getText());
+                int userID = Integer.parseInt(userIDText);
+
+                // Only require location if status is Approved
+                if ("Approved".equalsIgnoreCase(status)) {
+                    if (dropdownLocation.getSelectedItem() == null || "N/A".equals(location)) {
+                        JOptionPane.showMessageDialog(AdminBackPanel,
+                                "Please select a valid Location for Approved status!",
+                                "Input Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                }
 
                 try {
-                    if (deliveryController.updateDeliveryOperations(shipmentID, status, cityController.getCityIDByCityName(location), delay)) {
-                        JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Operations Updated Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                        notificationController.generateUpdateDeliveryNotification(shipmentID, userID, status, location, delay); //Send update delivery notification
+                    if (deliveryController.updateDeliveryOperations(shipmentID, status,
+                            "Approved".equalsIgnoreCase(status) ? cityController.getCityIDByCityName(location) : -1,
+                            delay)) {
+                        JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Operations Updated Successfully!",
+                                "Success", JOptionPane.INFORMATION_MESSAGE);
+                        notificationController.generateUpdateDeliveryNotification(shipmentID, userID, status, location,
+                                delay); // Send update delivery notification
                     }
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Operations Update Failed!\n" + ex.getMessage(), "Failure", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(AdminBackPanel,
+                            "Delivery Operations Update Failed!\n" + ex.getMessage(), "Failure",
+                            JOptionPane.ERROR_MESSAGE);
                 }
                 loadShipments();
                 clearShipmentDetails();
             }
         });
-
 
         addShipmentButton.addActionListener(new ActionListener() {
             @Override
@@ -651,32 +761,38 @@ public class AdminView extends JFrame {
                 String address = txtAreaDeliveryAddress.getText();
                 boolean isUrgent = checkboxUrgent.isSelected();
 
-                //Format date
+                // Format date
                 LocalDate selectedDate = datePickerDeliveryDate.getDate();
                 if (selectedDate == null) {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Please select a date", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Please select a date", "Error",
+                            JOptionPane.ERROR_MESSAGE);
                 }
-                Date deliveryDate = java.sql.Date.valueOf(selectedDate); //Convert local Date into java.sql.Date
+                Date deliveryDate = java.sql.Date.valueOf(selectedDate); // Convert local Date into java.sql.Date
 
-                //Validate input
-                if (destination.trim().isEmpty() || timeSlotID <= 0 || receiverName.trim().isEmpty() || address.trim().isEmpty() || content.trim().isEmpty() || DriverID <= 0) {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Please Complete All Required Fields", "Required", JOptionPane.ERROR_MESSAGE);
+                // Validate input
+                if (destination.trim().isEmpty() || timeSlotID <= 0 || receiverName.trim().isEmpty()
+                        || address.trim().isEmpty() || content.trim().isEmpty() || DriverID <= 0) {
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Please Complete All Required Fields", "Required",
+                            JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
-                //getting City ID
+                // getting City ID
                 int cityID = cityController.getCityIDByCityName(destination);
 
-                Shipment shipment = new Shipment(receiverName, cityID, address, content, isUrgent, deliveryDate, timeSlotID, "Approved");
+                Shipment shipment = new Shipment(receiverName, cityID, address, content, isUrgent, deliveryDate,
+                        timeSlotID, "Approved");
                 Delivery delivery = new Delivery(DriverID);
                 int senderID = shipmentController.getUserIDbyUsername(username);
 
                 if (deliveryController.addDelivery(senderID, shipment, delivery)) {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Added Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Added Successfully!", "Success",
+                            JOptionPane.INFORMATION_MESSAGE);
                     loadShipments();
                     clearShipmentDetails();
                 } else {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Failed to Add Delivery", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Failed to Add Delivery", "Error",
+                            JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
@@ -687,7 +803,8 @@ public class AdminView extends JFrame {
                 int selectedRow = tableShipments.getSelectedRow();
 
                 if (selectedRow < 0) {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Please Select a Shipment to Update", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Please Select a Shipment to Update", "Error",
+                            JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
@@ -705,47 +822,55 @@ public class AdminView extends JFrame {
                 int delay = ((Number) spinnerDelay.getValue()).intValue();
                 boolean isDelayed = delay > 0;
 
-                //Get the selected date from datapicker
+                // Get the selected date from datapicker
                 LocalDate selectedDate = datePickerDeliveryDate.getDate();
                 if (selectedDate == null) {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Please select a date", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Please select a date", "Error",
+                            JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
-                //Convert LocalDate to java.sql.Date
+                // Convert LocalDate to java.sql.Date
                 java.sql.Date deliveryDate = java.sql.Date.valueOf(selectedDate);
 
-                //Get selected timeSlot
+                // Get selected timeSlot
                 TimeSlot selectedTimeSlot = (TimeSlot) dropdownTimeSlot.getSelectedItem();
                 if (selectedTimeSlot == null) {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Please select a time slot!", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Please select a time slot!", "Error",
+                            JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
-                //Combine date and time to create LocalDateTime
+                // Combine date and time to create LocalDateTime
                 LocalTime startTime = selectedTimeSlot.getStartTime().toLocalTime();
                 LocalDateTime deliveryDateTime = LocalDateTime.of(selectedDate, startTime);
 
-                //Validate input
-                if (shipmentID <= 0 || destination.trim().isEmpty() || timeSlotID <= 0 || CustomerID <= 0 || receiverName.trim().isEmpty() || address.trim().isEmpty() || content.trim().isEmpty() || DriverID <= 0) {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Please Complete All Required Fields", "Required", JOptionPane.ERROR_MESSAGE);
+                // Validate input
+                if (shipmentID <= 0 || destination.trim().isEmpty() || timeSlotID <= 0 || CustomerID <= 0
+                        || receiverName.trim().isEmpty() || address.trim().isEmpty() || content.trim().isEmpty()
+                        || DriverID <= 0) {
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Please Complete All Required Fields", "Required",
+                            JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
-                //getting City ID
+                // getting City ID
                 int cityID = cityController.getCityIDByCityName(destination);
-                //getting current location
+                // getting current location
                 int locationID = cityController.getCityIDByCityName(location);
 
-                Shipment shipment = new Shipment(shipmentID, CustomerID, receiverName, cityID, address, content, isUrgent, deliveryDate, timeSlotID, status);
+                Shipment shipment = new Shipment(shipmentID, CustomerID, receiverName, cityID, address, content,
+                        isUrgent, deliveryDate, timeSlotID, status);
                 Delivery delivery = new Delivery(shipmentID, DriverID, locationID, isDelayed, delay, deliveryDateTime);
 
                 if (deliveryController.updateDelivery(shipment, delivery)) {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Updated Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Updated Successfully!", "Success",
+                            JOptionPane.INFORMATION_MESSAGE);
                     loadShipments();
                     clearShipmentDetails();
                 } else {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Failed to Update Delivery", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Failed to Update Delivery", "Error",
+                            JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
@@ -755,31 +880,33 @@ public class AdminView extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 int selectedRow = tableShipments.getSelectedRow();
                 if (selectedRow < 0) {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Please Select a Shipment to Update", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Please Select a Shipment to Update", "Error",
+                            JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
                 int shipmentID = Integer.parseInt(txtShipmentID.getText());
 
-                //Validating
+                // Validating
                 if (shipmentID <= 0) {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Invalid Shipment ID", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Invalid Shipment ID", "Error",
+                            JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
                 if (deliveryController.deleteDelivery(shipmentID)) {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Deleted Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Deleted Successfully!", "Success",
+                            JOptionPane.INFORMATION_MESSAGE);
                     loadShipments();
                     clearShipmentDetails();
                 } else {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Failed to Delete Delivery", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Failed to Delete Delivery", "Error",
+                            JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
 
-
-
-        //--------- TIMESLOT TABLE BUTTON ACTIONS -----------
+        // --------- TIMESLOT TABLE BUTTON ACTIONS -----------
         addSlotButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -788,16 +915,19 @@ public class AdminView extends JFrame {
                     Time endTime = Time.valueOf(txtEndTime.getText() + ":00");
 
                     if (timeSlotController.addTimeSlot(startTime, endTime)) {
-                        JOptionPane.showMessageDialog(AdminBackPanel, "Time slot added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        JOptionPane.showMessageDialog(AdminBackPanel, "Time slot added successfully!", "Success",
+                                JOptionPane.INFORMATION_MESSAGE);
                         loadTimeSlots();
                         initiateTimeSlotDropdown();
                         txtStartTime.setText("");
                         txtEndTime.setText("");
                     } else {
-                        JOptionPane.showMessageDialog(AdminBackPanel, "Time slot could not be added!", "Error", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(AdminBackPanel, "Time slot could not be added!", "Error",
+                                JOptionPane.ERROR_MESSAGE);
                     }
                 } catch (IllegalArgumentException ex) {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Invalid time format. Use HH:MM", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Invalid time format. Use HH:MM", "Error",
+                            JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
@@ -809,30 +939,34 @@ public class AdminView extends JFrame {
                 if (selectedRow >= 0) {
                     int timeSlotID = (int) tableTimeSlots.getValueAt(selectedRow, 0);
                     if (timeSlotController.removeTimeSlot(timeSlotID)) {
-                        JOptionPane.showMessageDialog(AdminBackPanel, "Time slot removed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        JOptionPane.showMessageDialog(AdminBackPanel, "Time slot removed successfully!", "Success",
+                                JOptionPane.INFORMATION_MESSAGE);
                         loadTimeSlots();
                         initiateTimeSlotDropdown();
                     } else {
-                        JOptionPane.showMessageDialog(AdminBackPanel, "Failed to remove time slot!", "Error", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(AdminBackPanel, "Failed to remove time slot!", "Error",
+                                JOptionPane.ERROR_MESSAGE);
                     }
                 } else {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Select a time slot first!", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Select a time slot first!", "Error",
+                            JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
 
-        //DRIVER SECTION -----------------------------------------------------------------------------------------------
+        // DRIVER SECTION
+        // -----------------------------------------------------------------------------------------------
         driverController = new DeliveryPersonnelController();
 
         txtDriverID.setEditable(false);
-        txtRating.setEditable(false); //These fields will not be editable
+        txtRating.setEditable(false); // These fields will not be editable
 
         refreshDriverTable();
 
         // Populate the driver dropdown with names
         populateDriverDropdown();
 
-        //Button actions
+        // Button actions
         addDriverButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -845,10 +979,10 @@ public class AdminView extends JFrame {
                 int routeID = Integer.parseInt(txtRouteID.getText());
                 boolean defaultIsAvailable = true;
 
-
-
-                if (driverController.addDriver(username, password, email, driverName, schedule, routeID , defaultIsAvailable)) {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Driver added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                if (driverController.addDriver(username, password, email, driverName, schedule, routeID,
+                        defaultIsAvailable)) {
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Driver added successfully!", "Success",
+                            JOptionPane.INFORMATION_MESSAGE);
 
                     populateDriverDropdown();
                     refreshDriverTable();
@@ -863,21 +997,26 @@ public class AdminView extends JFrame {
                 int selectedRow = tableDrivers.getSelectedRow();
                 if (selectedRow >= 0) {
                     int driverID = (int) tableDrivers.getValueAt(selectedRow, 0);
-                    int confirm = JOptionPane.showConfirmDialog(AdminBackPanel, "Are you sure you want to delete this driver?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
+                    int confirm = JOptionPane.showConfirmDialog(AdminBackPanel,
+                            "Are you sure you want to delete this driver?", "Confirm Delete",
+                            JOptionPane.YES_NO_OPTION);
 
                     if (confirm == JOptionPane.YES_OPTION) {
                         if (driverController.deleteDriver(driverID)) {
-                            JOptionPane.showMessageDialog(AdminBackPanel, "Driver deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                            JOptionPane.showMessageDialog(AdminBackPanel, "Driver deleted successfully!", "Success",
+                                    JOptionPane.INFORMATION_MESSAGE);
 
                             populateDriverDropdown();
                             refreshDriverTable();
                             clearDriverForm();
 
                         } else {
-                            JOptionPane.showMessageDialog(AdminBackPanel, "Failed to delete driver!", "Error", JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.showMessageDialog(AdminBackPanel, "Failed to delete driver!", "Error",
+                                    JOptionPane.ERROR_MESSAGE);
                         }
                     } else {
-                        JOptionPane.showMessageDialog(AdminBackPanel, "Select a driver to delete", "Error", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(AdminBackPanel, "Select a driver to delete", "Error",
+                                JOptionPane.ERROR_MESSAGE);
                     }
                 }
             }
@@ -897,7 +1036,8 @@ public class AdminView extends JFrame {
                     boolean routeChanged = (routeID != originalRouteID);
 
                     if (driverController.updateDrivers(driverID, driverName, schedule, routeID, defaultIsAvailable)) {
-                        JOptionPane.showMessageDialog(AdminBackPanel, "Driver updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        JOptionPane.showMessageDialog(AdminBackPanel, "Driver updated successfully!", "Success",
+                                JOptionPane.INFORMATION_MESSAGE);
 
                         if (routeChanged) {
                             notificationController.generateRouteChangeNotification(driverID, routeID);
@@ -908,21 +1048,24 @@ public class AdminView extends JFrame {
                         clearDriverForm();
 
                     } else {
-                        JOptionPane.showMessageDialog(AdminBackPanel, "Failed to update driver!", "Error", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(AdminBackPanel, "Failed to update driver!", "Error",
+                                JOptionPane.ERROR_MESSAGE);
                     }
                 } else {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Select a driver to update", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Select a driver to update", "Error",
+                            JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
 
         clearFormButton.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) { clearDriverForm();
+            public void actionPerformed(ActionEvent e) {
+                clearDriverForm();
             }
         });
 
-        //Populate form
+        // Populate form
         tableDrivers.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
@@ -944,7 +1087,8 @@ public class AdminView extends JFrame {
                         } else if (availabilityValue instanceof Integer) {
                             isAvailable = ((Integer) availabilityValue) == 1;
                         } else if (availabilityValue instanceof String) {
-                            isAvailable = availabilityValue.toString().equalsIgnoreCase("available") || availabilityValue.equals("1");
+                            isAvailable = availabilityValue.toString().equalsIgnoreCase("available")
+                                    || availabilityValue.equals("1");
                         }
 
                         DriverAvailabilityAdminView.setText(isAvailable ? "Mark as Unavailable" : "Mark as Available");
@@ -961,7 +1105,6 @@ public class AdminView extends JFrame {
             }
         });
 
-
         DriverAvailabilityAdminView.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -970,12 +1113,13 @@ public class AdminView extends JFrame {
                 boolean availability = DeliveryPersonnelController.getAvailability(driverID);
 
                 boolean availabilityState = !availability;
-                int availabilityValue = availabilityState ? 1: 0 ;
+                int availabilityValue = availabilityState ? 1 : 0;
 
                 DriverAvailabilityAdminView.setText(availabilityState ? "Mark as Unavailable" : "Mark as Available");
                 DeliveryPersonnelController.updateAvailability(driverID, availabilityValue);
 
-                String message = availabilityState ? "Driver is now marked as Available." : "Driver is now marked as UNAVAILABLE.";
+                String message = availabilityState ? "Driver is now marked as Available."
+                        : "Driver is now marked as UNAVAILABLE.";
                 JOptionPane.showMessageDialog(null, message);
 
                 refreshDriverTable();
@@ -985,13 +1129,14 @@ public class AdminView extends JFrame {
             }
         });
 
-        //REPORT SECTION -----------------------------------------------------------------------------------------------
+        // REPORT SECTION
+        // -----------------------------------------------------------------------------------------------
         clearReportLabels();
 
-        //Action listener for report button
+        // Action listener for report button
         generateReportButton.addActionListener(e -> generateReport());
 
-        //Handling star dropdown
+        // Handling star dropdown
         StarDropdown.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -1008,8 +1153,12 @@ public class AdminView extends JFrame {
         });
 
         // Route tab setup
-        tableRoutes.setModel(new DefaultTableModel(new Object[][]{}, new String[]{"RouteID", "Start City", "End City"}));
-        tableCities.setModel(new DefaultTableModel(new Object[][]{}, new String[]{"CityID", "City Name", "Sequence"}));
+        tableRoutes.setModel(
+                new DefaultTableModel(new Object[][] {}, new String[] { "RouteID", "Start City", "End City" }));
+        tableRoutes.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        tableCities
+                .setModel(new DefaultTableModel(new Object[][] {}, new String[] { "CityID", "City Name", "Sequence" }));
+        tableCities.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         loadRoutes();
         populateCityCombos();
         tableRoutes.getSelectionModel().addListSelectionListener(e -> {
@@ -1019,113 +1168,134 @@ public class AdminView extends JFrame {
                 loadCities(routeID);
             }
         });
-        addRouteButton.addActionListener(e -> {
-            City start = (City) comboStartCity.getSelectedItem();
-            City end = (City) comboEndCity.getSelectedItem();
-            if (start == null || end == null || start.getCityID() == end.getCityID()) {
-                JOptionPane.showMessageDialog(this, "Select different start and end cities.");
-                return;
-            }
-            if (routeController.addRoute(start.getCityID(), end.getCityID())) {
-                loadRoutes();
+        // Add Route
+        if (addRouteButton != null) {
+            addRouteButton.addActionListener(e -> {
+                City start = (City) comboStartCity.getSelectedItem();
+                City end = (City) comboEndCity.getSelectedItem();
+                if (start == null || end == null) {
+                    JOptionPane.showMessageDialog(this, "Please select both start and end cities.");
+                    return;
+                }
+                if (start.getCityID() == end.getCityID()) {
+                    JOptionPane.showMessageDialog(this, "Start and end cities must be different.");
+                    return;
+                }
+                if (routeController.addRoute(start.getCityID(), end.getCityID())) {
+                    loadRoutes();
+                    populateCityCombos();
+                    JOptionPane.showMessageDialog(this, "Route added successfully.");
+                } else {
+                    JOptionPane.showMessageDialog(this, "Failed to add route. It may already exist.");
+                }
+            });
+        }
+        // Add City to Route
+        if (addCityButton != null) {
+            addCityButton.addActionListener(e -> {
+                int row = tableRoutes.getSelectedRow();
+                if (row < 0) {
+                    JOptionPane.showMessageDialog(this, "Please select a route first.");
+                    return;
+                }
+                int routeID = (int) tableRoutes.getValueAt(row, 0);
+                City city = (City) comboCityToAdd.getSelectedItem();
+                if (city == null) {
+                    JOptionPane.showMessageDialog(this, "Please select a city to add.");
+                    return;
+                }
+                // Add as last: get current max sequence and add 1
+                int maxSeq = 0;
+                List<City> cities = routeController.getCitiesbyRoute(routeID);
+                for (City c : cities) {
+                    int seq = routeController.getCitySequence(routeID, c.getCityID());
+                    if (seq > maxSeq)
+                        maxSeq = seq;
+                }
+                int newSeq = maxSeq + 1;
+                if (routeController.addCityToRoute(routeID, city.getCityID(), newSeq)) {
+                    loadCities(routeID);
+                    JOptionPane.showMessageDialog(this, "City added to route successfully.");
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                            "Failed to add city to route. It may already exist in this route.");
+                }
+            });
+        }
+        // Add New City to DB and Optionally to Route
+        if (addCityMasterButton != null) {
+            addCityMasterButton.addActionListener(e -> {
+                String newCityName = JOptionPane.showInputDialog(this, "Enter new city name:");
+                if (newCityName == null || newCityName.trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "City name cannot be empty.");
+                    return;
+                }
+                if (!cityController.addCity(newCityName.trim())) {
+                    JOptionPane.showMessageDialog(this, "Failed to add city to database. It may already exist.");
+                    return;
+                }
                 populateCityCombos();
-            } else {
-                JOptionPane.showMessageDialog(this, "Failed to add route.");
-            }
-        });
-        editRouteButton.addActionListener(e -> {
-            int row = tableRoutes.getSelectedRow();
-            if (row < 0) return;
-            int routeID = (int) tableRoutes.getValueAt(row, 0);
-            City start = (City) comboStartCity.getSelectedItem();
-            City end = (City) comboEndCity.getSelectedItem();
-            if (start == null || end == null || start.getCityID() == end.getCityID()) {
-                JOptionPane.showMessageDialog(this, "Select different start and end cities.");
-                return;
-            }
-            if (routeController.updateRoute(routeID, start.getCityID(), end.getCityID())) {
-                loadRoutes();
-            } else {
-                JOptionPane.showMessageDialog(this, "Failed to update route.");
-            }
-        });
-        deleteRouteButton.addActionListener(e -> {
-            int row = tableRoutes.getSelectedRow();
-            if (row < 0) return;
-            int routeID = (int) tableRoutes.getValueAt(row, 0);
-            if (routeController.removeRoute(routeID)) {
-                loadRoutes();
-                ((DefaultTableModel) tableCities.getModel()).setRowCount(0);
-            } else {
-                JOptionPane.showMessageDialog(this, "Failed to delete route.");
-            }
-        });
-        addCityButton.addActionListener(e -> {
-            int row = tableRoutes.getSelectedRow();
-            if (row < 0) return;
-            int routeID = (int) tableRoutes.getValueAt(row, 0);
-            City city = (City) comboCityToAdd.getSelectedItem();
-            int seq;
-            try {
-                seq = Integer.parseInt(txtSequence.getText().trim());
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Enter valid sequence number.");
-                return;
-            }
-            if (routeController.addCityToRoute(routeID, city.getCityID(), seq)) {
-                loadCities(routeID);
-            } else {
-                JOptionPane.showMessageDialog(this, "Failed to add city to route.");
-            }
-        });
-        removeCityButton.addActionListener(e -> {
-            int routeRow = tableRoutes.getSelectedRow();
-            int cityRow = tableCities.getSelectedRow();
-            if (routeRow < 0 || cityRow < 0) return;
-            int routeID = (int) tableRoutes.getValueAt(routeRow, 0);
-            int cityID = (int) tableCities.getValueAt(cityRow, 0);
-            if (routeController.removeCityFromRoute(routeID, cityID)) {
-                loadCities(routeID);
-            } else {
-                JOptionPane.showMessageDialog(this, "Failed to remove city from route.");
-            }
-        });
-        addCityMasterButton.addActionListener(e -> {
-            String cityName = txtNewCity.getText().trim();
-            if (cityName.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "City name cannot be empty.");
-                return;
-            }
-            if (cityController.getCityIDByCityName(cityName) != 0) {
-                JOptionPane.showMessageDialog(this, "City already exists.");
-                return;
-            }
-            if (cityController.addCity(cityName)) {
-                JOptionPane.showMessageDialog(this, "City added successfully!");
-                txtNewCity.setText("");
-                populateCityCombos();
-            } else {
-                JOptionPane.showMessageDialog(this, "Failed to add city.");
-            }
-        });
+                comboRouteCity.removeAllItems();
+                for (City c : cityController.getAllCities()) {
+                    comboRouteCity.addItem(c);
+                }
+                int routeRow = tableRoutes.getSelectedRow();
+                if (routeRow >= 0) {
+                    int routeID = (int) tableRoutes.getValueAt(routeRow, 0);
+                    City city = null;
+                    for (int i = 0; i < comboRouteCity.getItemCount(); i++) {
+                        City c = (City) comboRouteCity.getItemAt(i);
+                        if (c != null && c.getCityName().equalsIgnoreCase(newCityName.trim())) {
+                            city = c;
+                            break;
+                        }
+                    }
+                    if (city == null) {
+                        JOptionPane.showMessageDialog(this, "City not found in combo after adding.");
+                        return;
+                    }
+                    String seqStr = JOptionPane.showInputDialog(this,
+                            "Enter sequence number for this city in the route:");
+                    int seq;
+                    try {
+                        seq = Integer.parseInt(seqStr.trim());
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(this, "Invalid sequence number.");
+                        return;
+                    }
+                    if (routeController.addCityToRoute(routeID, city.getCityID(), seq)) {
+                        loadCities(routeID);
+                        JOptionPane.showMessageDialog(this, "City added to route successfully.");
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Failed to add city to route.");
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                            "City added to database. Select a route and add it to the route if needed.");
+                }
+            });
+        }
     }
+
     private void loadRoutes() {
         DefaultTableModel model = (DefaultTableModel) tableRoutes.getModel();
         model.setRowCount(0);
         List<Route> routes = routeController.getAllRoutesWithCities();
         for (Route r : routes) {
-            model.addRow(new Object[]{r.getRouteID(), r.getStartCityName(), r.getEndCityName()});
+            model.addRow(new Object[] { r.getRouteID(), r.getStartCityName(), r.getEndCityName() });
         }
     }
+
     private void loadCities(int routeID) {
         DefaultTableModel model = (DefaultTableModel) tableCities.getModel();
         model.setRowCount(0);
         List<City> cities = routeController.getCitiesbyRoute(routeID);
         for (City c : cities) {
             int seq = routeController.getCitySequence(routeID, c.getCityID());
-            model.addRow(new Object[]{c.getCityID(), c.getCityName(), seq});
+            model.addRow(new Object[] { c.getCityID(), c.getCityName(), seq });
         }
     }
+
     private void populateCityCombos() {
         comboStartCity.removeAllItems();
         comboEndCity.removeAllItems();
@@ -1138,20 +1308,19 @@ public class AdminView extends JFrame {
         }
     }
 
-    //Populate DriverDropDown
-    public void  populateDriverDropdown() {
+    // Populate DriverDropDown
+    public void populateDriverDropdown() {
 
-        //should always remove the existing data and add them again, or it won't work real time( will only work after you open it again)
+        // should always remove the existing data and add them again, or it won't work
+        // real time( will only work after you open it again)
         dropdownDriver.removeAllItems();
 
-        //Fetch Driver Names
+        // Fetch Driver Names
         List<String> driverNames = driverController.getAllDriverNames();
 
-        //Addding driver names to the drop down
-        for(String name: driverNames) {
+        // Addding driver names to the drop down
+        for (String name : driverNames) {
             dropdownDriver.addItem(name); // add each driver name as an item
-
-
 
         }
     }

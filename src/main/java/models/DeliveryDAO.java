@@ -1,6 +1,5 @@
 package models;
 
-import com.mysql.cj.protocol.Resultset;
 import utilities.DatabaseConnection;
 
 import java.sql.*;
@@ -275,7 +274,7 @@ public class DeliveryDAO {
 
     public boolean updateDeliveryOperations(int shipmentID, String status, Integer location, int delay) {
         // Define allowed status values based on your database schema constraints
-        final String[] ALLOWED_STATUSES = {"Pending", "Approved", "In Transit", "Delivered", "Failed Delivery"};
+        final String[] ALLOWED_STATUSES = {"Pending", "Approved", "Disapproved", "In Transit", "Delivered", "Cancelled", "Failed Delivery"};
 
         // For delay reporting, we don't need to update the shipment status
         boolean isDelayOperation = "Delay".equals(status);
@@ -318,8 +317,10 @@ public class DeliveryDAO {
             String updateDeliverySQL = "UPDATE Delivery SET Location = ?, isDelayed = ?, Delay = ? WHERE ShipmentID = ?";
             updateDeliveryStmt = connection.prepareStatement(updateDeliverySQL);
 
-            // Set location (may be null)
-            if (location != null) {
+            // If status is Disapproved or Approved, set Location to NULL
+            if ("Disapproved".equals(status) || "Approved".equals(status)) {
+                updateDeliveryStmt.setNull(1, java.sql.Types.INTEGER);
+            } else if (location != null) {
                 updateDeliveryStmt.setInt(1, location);
             } else {
                 updateDeliveryStmt.setNull(1, java.sql.Types.INTEGER);
