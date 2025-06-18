@@ -205,4 +205,30 @@ public class DeliveryPersonnelDAO {
         return driverNames;  // Return the list of driver names
     }
 
+    //Fetch driver information from the database to allow for partial updates
+    public DeliveryPersonnel getDriverByID (int driverID) throws SQLException {
+        String SQL = "SELECT d.DriverID, u.Username, u.Password, u.Email, d.DriverName, d.Schedule, d.RouteID, d.isAvailable " +
+                "FROM Driver d JOIN User u ON d.DriverID = u.UserID WHERE d.DriverID = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(SQL)) {
+            stmt.setInt(1, driverID);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return new DeliveryPersonnel(
+                        rs.getInt("DriverID"),
+                        rs.getString("Username"),
+                        rs.getString("Password"),
+                        rs.getString("Email"),
+                        rs.getString("DriverName"),
+                        rs.getString("Schedule"),
+                        rs.getInt("RouteID"),
+                        rs.getBoolean("isAvailable")
+                );
+            }
+        }
+        return null;
+    }
+
 }

@@ -9,7 +9,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -31,12 +30,24 @@ public class DeliveryPersonnelController {
         return driverDAO.addDeliveryPersonnel(driver);
     }
 
-    public boolean updateDrivers(int driverID, String username, String password, String email, String driverName,  String schedule, int routeID,  boolean isAvailable) {
-        if (driverID <= 0 || username == null || password == null || email == null || driverName == null || schedule == null ||
-        username.trim().isEmpty() || password.trim().isEmpty() || email.trim().isEmpty() || driverName.trim().isEmpty() || schedule.trim().isEmpty() || routeID <= 0) {
+    public boolean updateDrivers(int driverID, String driverName,  String schedule, int routeID,  boolean isAvailable) {
+        if (driverID <= 0 || driverName == null || schedule == null || driverName.trim().isEmpty() || schedule.trim().isEmpty() || routeID <= 0) {
             return false;
         }
-        DeliveryPersonnel driver = new DeliveryPersonnel(driverID, username, password, email, driverName, schedule, routeID ,   isAvailable);
+
+        DeliveryPersonnel existingDriver;
+
+        try {
+            existingDriver = driverDAO.getDriverByID(driverID);
+            if (existingDriver == null) {
+                return false;
+            }
+        } catch (SQLException e) {
+            System.out.println("Couldn't fetch driver's username, email and password from the database to update him.");
+            return false;
+        }
+
+        DeliveryPersonnel driver = new DeliveryPersonnel(driverID, existingDriver.getUsername(), existingDriver.getPassword(), existingDriver.getEmail(), driverName, schedule, routeID ,   isAvailable);
         return driverDAO.updateDeliveryPersonnel(driver);
     }
 
