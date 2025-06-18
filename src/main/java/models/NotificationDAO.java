@@ -9,7 +9,7 @@ import java.util.List;
 public class NotificationDAO {
     public List<Notification> getAllNotifications(int userID) {
         List<Notification> notifications = new ArrayList<>();
-        String sql = "SELECT * FROM Notification WHERE userID = ?";
+        String sql = "SELECT * FROM Notification WHERE userID = ? ORDER BY Timestamp DESC";
 
         try (Connection conn = DatabaseConnection.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)) {
