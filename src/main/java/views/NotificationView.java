@@ -35,15 +35,38 @@ public class NotificationView extends JFrame {
         this.userRole = userRole;
 
         //Set table columns
-        String[] notificationTableColumns = {"ID", "Type", "Content", "Generated"};
+        String[] notificationTableColumns = {"ID", "Type", "Content", "Generated", "isRead"}; // Add isRead column
         Object[][] notificationTableData = {};
-        notificationTableModel = new DefaultTableModel(notificationTableData, notificationTableColumns);
+        notificationTableModel = new DefaultTableModel(notificationTableData, notificationTableColumns) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         notifyTbl.setModel(notificationTableModel);
 
-        //Hide notificationID column
+        //Hide notificationID and isRead columns
         notifyTbl.getColumnModel().getColumn(0).setMinWidth(0);
         notifyTbl.getColumnModel().getColumn(0).setMaxWidth(0);
         notifyTbl.getColumnModel().getColumn(0).setWidth(0);
+        notifyTbl.getColumnModel().getColumn(4).setMinWidth(0); // isRead
+        notifyTbl.getColumnModel().getColumn(4).setMaxWidth(0);
+        notifyTbl.getColumnModel().getColumn(4).setWidth(0);
+
+        // Custom renderer for bold unread notifications
+        notifyTbl.setDefaultRenderer(Object.class, new javax.swing.table.DefaultTableCellRenderer() {
+            @Override
+            public java.awt.Component getTableCellRendererComponent(javax.swing.JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                java.awt.Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                boolean isRead = Boolean.parseBoolean(table.getModel().getValueAt(row, 4).toString());
+                if (!isRead) {
+                    c.setFont(c.getFont().deriveFont(java.awt.Font.BOLD));
+                } else {
+                    c.setFont(c.getFont().deriveFont(java.awt.Font.PLAIN));
+                }
+                return c;
+            }
+        });
 
         //Display notification content in the text area
         notifyTbl.getSelectionModel().addListSelectionListener(e -> {
@@ -141,7 +164,8 @@ public class NotificationView extends JFrame {
                     notification.getNotificationID(), //This column will be hidden
                     notification.getType(),
                     notification.getMessage(),
-                    notification.getTimeStamp().format(formatter)
+                    notification.getTimeStamp().format(formatter),
+                    notification.isRead() // Add isRead as boolean
             });
         }
     }
