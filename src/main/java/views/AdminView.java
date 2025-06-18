@@ -415,7 +415,9 @@ public class AdminView extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 int shipmentID = Integer.parseInt(txtShipmentID.getText());
-                int driverID = Integer.parseInt(dropdownDriver.getSelectedItem().toString());
+                String driverName = dropdownDriver.getSelectedItem().toString();
+                int driverID = driverController.getDriverIDbyDriverName(driverName);
+
 
                 if (deliveryController.approveDelivery(shipmentID, driverID)) {
                     JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Approved Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
