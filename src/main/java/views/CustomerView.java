@@ -295,12 +295,18 @@ public class CustomerView extends JFrame {
                     int shipmentID = (int) ((DefaultTableModel) tableCustomerShipments.getModel()).getValueAt(selectedRow, 0);
                     String status = (String) ((DefaultTableModel) tableCustomerShipments.getModel()).getValueAt(selectedRow, 5);
 
+                    //Get tracking info
+                    Object[][] trackingInfo = shipmentDAO.getShipmentTracking(shipmentID);
+
                     // Display tracking information
                     String[] labels = {"Status: ", "Current Location: ", "Delivery Estimation: ", "Delay: "};
                     StringBuilder displayText = new StringBuilder();
+
                     for (int i = 0; i < labels.length; i++) {
-                        displayText.append(labels[i]).append(ShipmentDAO.getShipmentTracking(shipmentID)[0][i]).append("\n");
+                        Object value = trackingInfo[0][i];
+                        displayText.append(labels[i]).append(value != null ? value.toString() : "Not set").append("\n");
                     }
+
                     JOptionPane.showMessageDialog(null, displayText.toString(), "Track Status", JOptionPane.INFORMATION_MESSAGE);
 
                     // If status is "Delivered" and not yet rated, show rating dialog

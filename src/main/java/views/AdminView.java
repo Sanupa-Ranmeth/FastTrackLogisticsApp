@@ -14,8 +14,6 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.sql.Time;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -792,6 +790,7 @@ public class AdminView extends JFrame {
                     if (timeSlotController.addTimeSlot(startTime, endTime)) {
                         JOptionPane.showMessageDialog(AdminBackPanel, "Time slot added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                         loadTimeSlots();
+                        initiateTimeSlotDropdown();
                         txtStartTime.setText("");
                         txtEndTime.setText("");
                     } else {
@@ -812,6 +811,7 @@ public class AdminView extends JFrame {
                     if (timeSlotController.removeTimeSlot(timeSlotID)) {
                         JOptionPane.showMessageDialog(AdminBackPanel, "Time slot removed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                         loadTimeSlots();
+                        initiateTimeSlotDropdown();
                     } else {
                         JOptionPane.showMessageDialog(AdminBackPanel, "Failed to remove time slot!", "Error", JOptionPane.ERROR_MESSAGE);
                     }
@@ -889,9 +889,6 @@ public class AdminView extends JFrame {
                 int selectedRow = tableDrivers.getSelectedRow();
                 if (selectedRow >= 0) {
                     int driverID = (int) tableDrivers.getValueAt(selectedRow, 0);
-                    String username = JOptionPane.showInputDialog("Enter Username");
-                    String password = JOptionPane.showInputDialog("Enter Password");
-                    String email = JOptionPane.showInputDialog("Enter Email");
                     String driverName = txtDriverName.getText();
                     String schedule = txtSchedule.getText();
                     int routeID = Integer.parseInt(txtRouteID.getText());
@@ -899,7 +896,7 @@ public class AdminView extends JFrame {
 
                     boolean routeChanged = (routeID != originalRouteID);
 
-                    if (driverController.updateDrivers(driverID, username, password, email, driverName, schedule, routeID, defaultIsAvailable)) {
+                    if (driverController.updateDrivers(driverID, driverName, schedule, routeID, defaultIsAvailable)) {
                         JOptionPane.showMessageDialog(AdminBackPanel, "Driver updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
                         if (routeChanged) {
