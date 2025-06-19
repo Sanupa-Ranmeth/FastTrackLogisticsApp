@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DeliveryPersonnelDAO {
-    private UserDAO userDAO;
+    private final UserDAO userDAO;
 
     public DeliveryPersonnelDAO() {
         this.userDAO = new UserDAO();
@@ -42,7 +42,7 @@ public class DeliveryPersonnelDAO {
             return false;
         }
 
-        String sql = "INSERT INTO Driver (DriverID, DriverName, Schedule, RouteID) VALUES (?,?,?,?)";
+        String sql = "INSERT INTO Driver (DriverID, DriverName, Schedule, RouteID , isAvailable) VALUES (?,?,?,?,?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -50,6 +50,7 @@ public class DeliveryPersonnelDAO {
             stmt.setString(2, driver.getDriverName());
             stmt.setString(3, driver.getSchedule());
             stmt.setInt(4, driver.getRouteID());
+            stmt.setBoolean(5, driver.isAvailable());
 
             boolean success = stmt.executeUpdate() > 0;
             if (success) {
@@ -63,14 +64,15 @@ public class DeliveryPersonnelDAO {
     }
 
     public boolean updateDeliveryPersonnel(DeliveryPersonnel driver) {
-        String sql = "UPDATE Driver SET DriverName = ?, Schedule = ?, RouteID = ? WHERE DriverID = ?";
+        String sql = "UPDATE Driver SET DriverName = ?, Schedule = ?, RouteID = ? , isAvailable= ? WHERE DriverID = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, driver.getDriverName());
             stmt.setString(2, driver.getSchedule());
             stmt.setInt(3, driver.getRouteID());
-            stmt.setInt(4, driver.getDriverID());
+            stmt.setBoolean(4, driver.isAvailable());
+            stmt.setInt(5, driver.getDriverID());
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             System.out.println("Update Delivery Personnel Failed: " + e.getMessage());
@@ -93,7 +95,7 @@ public class DeliveryPersonnelDAO {
     }
 
     //The driver needs to be deleted from the User table as well
-    public boolean deleteUser (int userID) {
+    public boolean deleteUser(int userID) {
         String sql = "DELETE FROM `User` WHERE UserID = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -132,7 +134,7 @@ public class DeliveryPersonnelDAO {
 
     public Object[][] getAllDeliveryPersonnel() {
         List<Object[]> driverData = new ArrayList<>();
-        String sql = "SELECT d.DriverID, d.DriverName, d.Schedule, d.RouteID, d.AverageRating FROM DriverInfoView d";
+        String sql = "SELECT d.DriverID, d.DriverName, d.Schedule, d.RouteID, d.AverageRating ,d.isAvailable FROM DriverInfoView d";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -140,12 +142,17 @@ public class DeliveryPersonnelDAO {
             while (rs.next()) {
                 double avgRating = rs.getDouble("AverageRating");
                 Object rating = rs.wasNull() ? "N/A" : avgRating;
+
+                boolean available = rs.getBoolean("isAvailable");
+                Object availability = rs.wasNull() ? "Unknown" : (available ? "Available" : "Unavailable");
+
                 driverData.add(new Object[]{
                         rs.getInt("DriverID"),
                         rs.getString("DriverName"),
                         rs.getString("Schedule"),
                         rs.getInt("RouteID"),
-                        rating
+                        rating,
+                        availability
                 });
             }
         } catch (SQLException e) {
@@ -155,12 +162,13 @@ public class DeliveryPersonnelDAO {
     }
 
     //Method to get userID from username
-    private int getUserIDbyUsername(String username) {
+    public int getUserIDbyUsername(String Username) {
         String sql = "SELECT UserID FROM `User` WHERE Username = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, username);
+
+            stmt.setString(1, Username.trim());
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
@@ -171,4 +179,56 @@ public class DeliveryPersonnelDAO {
         }
         return -1;
     }
+
+    //fetching Driver-names from database
+    public List<String> getALLDriverNames() {
+        List<String> driverNames = new ArrayList<>();  // Create an empty list to store driver names
+
+        String sql = "SELECT DriverName FROM Driver WHERE isAvailable = true";  // SQL query to select DriverName from Driver table
+
+        try (
+                // Establish connection, prepare statement, and execute the query
+                Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql);  // Prepare the SQL statement
+                ResultSet resultSet = stmt.executeQuery()  // Execute the query and store results
+        ) {
+            // Iterate over the result set to fetch all driver names
+            while (resultSet.next()) {
+                // Get the driver's name from the result set
+                String name = resultSet.getString("DriverName");  // "DriverName" is the column from the DB
+                driverNames.add(name);  // Add the driver's name to the list
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();  // Print any SQL exceptions if something goes wrong
+        }
+
+        return driverNames;  // Return the list of driver names
+    }
+
+    //Fetch driver information from the database to allow for partial updates
+    public DeliveryPersonnel getDriverByID (int driverID) throws SQLException {
+        String SQL = "SELECT d.DriverID, u.Username, u.Password, u.Email, d.DriverName, d.Schedule, d.RouteID, d.isAvailable " +
+                "FROM Driver d JOIN User u ON d.DriverID = u.UserID WHERE d.DriverID = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(SQL)) {
+            stmt.setInt(1, driverID);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return new DeliveryPersonnel(
+                        rs.getInt("DriverID"),
+                        rs.getString("Username"),
+                        rs.getString("Password"),
+                        rs.getString("Email"),
+                        rs.getString("DriverName"),
+                        rs.getString("Schedule"),
+                        rs.getInt("RouteID"),
+                        rs.getBoolean("isAvailable")
+                );
+            }
+        }
+        return null;
+    }
+
 }

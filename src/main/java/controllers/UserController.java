@@ -4,7 +4,7 @@ import models.User;
 import models.UserDAO;
 
 public class UserController {
-    private UserDAO userDAO;
+    private final UserDAO userDAO;
 
     public UserController() {
         userDAO = new UserDAO();
