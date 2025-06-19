@@ -314,14 +314,16 @@ public class AdminView extends JFrame {
                 public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index,
                         boolean isSelected, boolean cellHasFocus) {
                     super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+
                     if (value == null) {
                         setText("Select location");
                     } else if (value instanceof City) {
                         City city = (City) value;
                         setText(city.getCityName());
                     } else {
-                        setText(value.toString());
+                        setText(String.valueOf(value));
                     }
+
                     return this;
                 }
             });
@@ -625,26 +627,28 @@ public class AdminView extends JFrame {
         disapproveButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String shipmentIDText = txtShipmentID.getText();
-                String userIDText = txtCustomer.getText();
-                if (shipmentIDText == null || shipmentIDText.trim().isEmpty() || userIDText == null
-                        || userIDText.trim().isEmpty()) {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Shipment ID and Customer ID cannot be empty!",
-                            "Input Error", JOptionPane.ERROR_MESSAGE);
+                // First check if a row is selected in the shipments table
+                int selectedRow = tableShipments.getSelectedRow();
+                if (selectedRow < 0) {
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Please select a shipment to update",
+                            "Selection Required", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
-                int shipmentID = Integer.parseInt(shipmentIDText);
-                int userID = Integer.parseInt(userIDText);
+
+                // Get the data from the table directly instead of relying on form fields
+                DefaultTableModel model = (DefaultTableModel) tableShipments.getModel();
+                int shipmentID = Integer.parseInt(model.getValueAt(selectedRow, 0).toString());
+                int userID = Integer.parseInt(model.getValueAt(selectedRow, 1).toString());
 
                 if (deliveryController.disapproveDelivery(shipmentID)) {
                     JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Disapproved!", "Disapproved",
                             JOptionPane.INFORMATION_MESSAGE);
-                    notificationController.generateDisapproveDeliveryNotification(shipmentID, userID); // Send
-                                                                                                       // disapprove
-                                                                                                       // delivery
-                                                                                                       // notification
+                    notificationController.generateDisapproveDeliveryNotification(shipmentID, userID);
                     clearShipmentDetails();
                     loadShipments();
+                } else {
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Failed to disapprove delivery",
+                            "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
@@ -704,49 +708,56 @@ public class AdminView extends JFrame {
         updateDeliveryButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String shipmentIDText = txtShipmentID.getText();
-                String userIDText = txtCustomer.getText();
-                if (shipmentIDText == null || shipmentIDText.trim().isEmpty() || userIDText == null
-                        || userIDText.trim().isEmpty()) {
-                    JOptionPane.showMessageDialog(AdminBackPanel, "Shipment ID and Customer ID cannot be empty!",
-                            "Input Error", JOptionPane.ERROR_MESSAGE);
+                // Get values from form
+                int selectedRow = tableShipments.getSelectedRow();
+
+                // Debug line to check if the selection is detected
+                System.out.println("Selected row: " + selectedRow);
+
+                if (selectedRow < 0) {
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Please select a shipment to update",
+                            "Selection Required", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
-                int shipmentID = Integer.parseInt(shipmentIDText);
-                String status = dropdownStatus.getSelectedItem() != null ? dropdownStatus.getSelectedItem().toString()
-                        : "";
-                String location = dropdownLocation.getSelectedItem() != null
-                        ? dropdownLocation.getSelectedItem().toString()
-                        : "";
-                int delay = ((Number) spinnerDelay.getValue()).intValue();
-                int userID = Integer.parseInt(userIDText);
 
-                // Only require location if status is Approved
-                if ("Approved".equalsIgnoreCase(status)) {
-                    if (dropdownLocation.getSelectedItem() == null || "N/A".equals(location)) {
-                        JOptionPane.showMessageDialog(AdminBackPanel,
-                                "Please select a valid Location for Approved status!",
-                                "Input Error", JOptionPane.ERROR_MESSAGE);
+                DefaultTableModel model = (DefaultTableModel) tableShipments.getModel();
+                int shipmentID = Integer.parseInt(model.getValueAt(selectedRow, 0).toString());
+                String status = (String) dropdownStatus.getSelectedItem();
+
+                // Handle location based on status
+                Integer location = null;
+                if (!"Disapproved".equals(status)) {
+                    // Only get location if status is not Disapproved
+                    Object selectedLocation = dropdownLocation.getSelectedItem();
+
+                    if (selectedLocation instanceof City) {
+                        City city = (City) selectedLocation;
+                        location = city.getCityID();
+                    } else if (!"Disapproved".equals(status)) {
+                        JOptionPane.showMessageDialog(AdminBackPanel, "Please select a valid location",
+                                "Invalid Selection", JOptionPane.WARNING_MESSAGE);
                         return;
                     }
                 }
 
-                try {
-                    if (deliveryController.updateDeliveryOperations(shipmentID, status,
-                            "Approved".equalsIgnoreCase(status) ? cityController.getCityIDByCityName(location) : -1,
-                            delay)) {
-                        JOptionPane.showMessageDialog(AdminBackPanel, "Delivery Operations Updated Successfully!",
-                                "Success", JOptionPane.INFORMATION_MESSAGE);
-                        notificationController.generateUpdateDeliveryNotification(shipmentID, userID, status, location,
-                                delay); // Send update delivery notification
+                int delay = (Integer) spinnerDelay.getValue();
+
+                // Now update with proper location value (null for Disapproved)
+                if (deliveryController.updateDeliveryOperations(shipmentID, status, location, delay)) {
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Delivery updated successfully!", "Success",
+                            JOptionPane.INFORMATION_MESSAGE);
+
+                    // If it was disapproved, also send notification
+                    if ("Disapproved".equals(status)) {
+                        int userID = Integer.parseInt(model.getValueAt(selectedRow, 1).toString());
+                        notificationController.generateDisapproveDeliveryNotification(shipmentID, userID);
                     }
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(AdminBackPanel,
-                            "Delivery Operations Update Failed!\n" + ex.getMessage(), "Failure",
+
+                    loadShipments();
+                } else {
+                    JOptionPane.showMessageDialog(AdminBackPanel, "Failed to update delivery", "Error",
                             JOptionPane.ERROR_MESSAGE);
                 }
-                loadShipments();
-                clearShipmentDetails();
             }
         });
 
