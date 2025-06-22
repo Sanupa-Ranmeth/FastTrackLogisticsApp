@@ -6,6 +6,8 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+//Test comment
+
 public class TimeSlotDAO {
     //Getting all time slots
     public List<TimeSlot> getAllTimeSlots() {
