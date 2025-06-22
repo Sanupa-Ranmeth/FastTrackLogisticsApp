@@ -8,8 +8,19 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class DeliveryController {
-    private final DeliveryDAO deliveryDAO = new DeliveryDAO();
-    private final ShipmentController shipmentController = new ShipmentController();
+    private final DeliveryDAO deliveryDAO;
+    private final ShipmentController shipmentController;
+
+    public DeliveryController() {
+        this.deliveryDAO = new DeliveryDAO();
+        this.shipmentController = new ShipmentController();
+    }
+
+    //Constructor for unit testing
+    public DeliveryController(DeliveryDAO deliveryDAO, ShipmentController shipmentController) {
+        this.deliveryDAO = deliveryDAO;
+        this.shipmentController = shipmentController;
+    }
 
     public boolean approveDelivery(int shipmentID, int driverID) {
         return deliveryDAO.approveShipment(shipmentID, driverID) && shipmentController.approveShipment(shipmentID);

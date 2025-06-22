@@ -6,7 +6,16 @@ import models.NotificationDAO;
 import java.util.List;
 
 public class NotificationController {
-    private final NotificationDAO notificationDAO = new NotificationDAO();
+    private final NotificationDAO notificationDAO;
+
+    public NotificationController() {
+        this.notificationDAO = new NotificationDAO();
+    }
+
+    //Constructor for unit testing
+    public NotificationController(NotificationDAO notificationDAO) {
+        this.notificationDAO = notificationDAO;
+    }
 
     public boolean generateUpdateDeliveryNotification(int packageID, int userID, String status, String location, int delay) {
         String message = "Your package " + packageID + " is " + status +
