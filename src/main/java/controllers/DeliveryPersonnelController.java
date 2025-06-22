@@ -19,6 +19,11 @@ public class DeliveryPersonnelController {
         this.driverDAO = new DeliveryPersonnelDAO();
     }
 
+    //Constructor for unit testing
+    public DeliveryPersonnelController(DeliveryPersonnelDAO driverDAO) {
+        this.driverDAO = driverDAO;
+    }
+
     public boolean addDriver(String username, String password, String email, String driverName, String schedule, int routeID, boolean isAvailable) {
         //Validate parameters
         if (username == null || password == null || email == null || driverName == null || schedule == null ||
